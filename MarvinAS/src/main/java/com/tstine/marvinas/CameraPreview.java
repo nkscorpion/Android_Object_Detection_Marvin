@@ -43,7 +43,9 @@ public class CameraPreview
 																		 surfaceHeight );
 		params.setPreviewSize( bestSize.width, bestSize.height );
 
-		params.setFocusMode( Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE );
+      if( params.getSupportedFocusModes()
+          .contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE))
+          params.setFocusMode( Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE );
 
 		Display display = ((WindowManager) mCtx.getSystemService( Context.WINDOW_SERVICE))
 			.getDefaultDisplay();

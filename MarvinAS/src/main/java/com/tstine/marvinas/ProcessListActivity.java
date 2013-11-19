@@ -1,12 +1,13 @@
 package com.tstine.marvinas;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.support.v4.app.ListFragment;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,10 +15,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ProcessListActivity extends ActionBarActivity implements ActionBar.OnNavigationListener {
 
@@ -26,6 +31,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
      * current dropdown position.
      */
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
+    private List<Request> mData = new ArrayList<Request>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,15 +45,16 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
 
         // Set up the dropdown list navigation in the action bar.
         actionBar.setListNavigationCallbacks(
-                // Specify a SpinnerAdapter to populate the dropdown list.
-                new ArrayAdapter<String>(
-                        actionBar.getThemedContext(),
-                        android.R.layout.simple_list_item_1,
-                        android.R.id.text1,
-                        new String[] {
-                                getString(R.string.title_section1),
-                        }),
-                this);
+            // Specify a SpinnerAdapter to populate the dropdown list.
+            new ArrayAdapter<String>(
+                actionBar.getThemedContext(),
+                android.R.layout.simple_list_item_1,
+                android.R.id.text1,
+                new String[] {
+                    getString(R.string.title_section1),
+                }),
+            this);
+        mData.add(0, (Request)getIntent().getSerializableExtra(Const.REQUEST_EXTRA_KEY));
     }
 
     @Override
@@ -55,7 +62,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
         // Restore the previously serialized current dropdown position.
         if (savedInstanceState.containsKey(STATE_SELECTED_NAVIGATION_ITEM)) {
             getSupportActionBar().setSelectedNavigationItem(
-                    savedInstanceState.getInt(STATE_SELECTED_NAVIGATION_ITEM));
+                savedInstanceState.getInt(STATE_SELECTED_NAVIGATION_ITEM));
         }
     }
 
@@ -63,7 +70,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
     public void onSaveInstanceState(Bundle outState) {
         // Serialize the current dropdown position.
         outState.putInt(STATE_SELECTED_NAVIGATION_ITEM,
-                getSupportActionBar().getSelectedNavigationIndex());
+            getSupportActionBar().getSelectedNavigationIndex());
     }
 
 
@@ -90,75 +97,87 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
     public boolean onNavigationItemSelected(int position, long id) {
         // When the given dropdown item is selected, show its contents in the
         // container view.
+        ListFragment frag = ProcessListFragment.newInstance(position+1, mData);
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
-                .commit();
+            .replace(R.id.container, frag )
+            .commit();
         return true;
     }
 
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
+    public static class ProcessListFragment extends ListFragment {
         /**
          * The fragment argument representing the section number for this
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
+        private List<Request> mData = null;
 
         /**
          * Returns a new instance of this fragment for the given section
          * number.
          */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
+        public static ProcessListFragment newInstance(int sectionNumber, List<Request> data) {
+            ProcessListFragment fragment = new ProcessListFragment(data);
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
             fragment.setArguments(args);
             return fragment;
         }
 
-        public PlaceholderFragment() {
+        public ProcessListFragment(List<Request> data ) {
+            this.mData = data;
         }
+
+        public void onActivityCreated(Bundle savedInstanceState){
+            super.onActivityCreated(savedInstanceState);
+            setListAdapter(new MyAdapter(getActivity(), this.mData));
+            this.setListShown(true);
+        }
+
+    }
+    public static class MyAdapter extends BaseAdapter{
+        private List<Request> mData = null;
+        private Context mCtx;
+        public MyAdapter( Context ctx, List<Request> data ){
+            super();
+            mData = data;
+            mCtx = ctx;
+        }
+        @Override
+        public int getCount(){return mData.size();}
+        @Override
+        public Request getItem( int position ){return mData.get(position);}
 
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            ListView rootList = (ListView)inflater.inflate(R.layout.fragment_process_list,
-                container, false);
-          rootList.setAdapter( new MyAdapter(this) );
-
-
-          //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-          //textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootList;
+        public long getItemId(int position) {
+            return 0;
         }
-    }
-  public static class MyAdapter extends BaseAdapter{
-    private ArrayList<Request> mData = null;
-    private Context mCtx;
-    public MyAdapter( Context ctx ){
-      super();
-      mData = new ArrayList<Request>();
-      mCtx = ctx;
-    }
-    @Override
-    public int getCount(){return mData.size();}
-    @Override
-    public Request getItem( int position ){return mData.get(position);}
+        @Override
+        public View getView(int position, View convertView,
+                            ViewGroup parent ){
+            if( convertView != null )
+                return convertView;
 
-    @Override
-    public long getItemId(int position) {
-      return 0;
-    }
-    @Override
-    public View getView(int position, View convertView,
-                        ViewGroup parent ){
-      LayoutInflater inflater =
-          (LayoutInflater)mCtx.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
+            Request request = getItem(position);
+            LayoutInflater inflater =
+                (LayoutInflater)mCtx.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
+            View row = inflater.inflate(R.layout.request_row, null);
+            ImageView img = (ImageView) row.findViewById( R.id.image);
+            Bitmap bmp = BitmapFactory.decodeFile(request.getImagePath());
+            if( bmp == null)
+                throw new RuntimeException("bmp is null");
+            img.setImageBitmap(BitmapFactory.decodeFile(request.getImagePath()));
 
-      return null;
-    }
+            //img.setImageResource(R.drawable.ic_launcher);
+            TextView message = (TextView) row.findViewById( R.id.message );
+            message.setText( request.getMessage() );
+            TextView time = (TextView) row.findViewById(R.id.date);
+            time.setText(request.getTimestamp("EEE MMM F yyyy h:m:s a"));
+            return row;
+        }
 
-  }
+    }
 }

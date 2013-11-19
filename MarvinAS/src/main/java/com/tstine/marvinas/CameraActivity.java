@@ -89,4 +89,6 @@ public class CameraActivity extends Activity{
 			return false;
 		return net.isConnectedOrConnecting();
 	}
+
+
 }

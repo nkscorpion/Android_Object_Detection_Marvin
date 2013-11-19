@@ -1,8 +1,12 @@
 package com.tstine.marvinas;
+import android.annotation.TargetApi;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera;
+import android.os.Build;
 import android.provider.MediaStore.Files.FileColumns;
 import java.io.*;
+import java.text.SimpleDateFormat;
+
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.util.Log;
@@ -14,7 +18,8 @@ public class PictureTaker implements PictureCallback{
 	private Context mCtx;
 	public PictureTaker( Context ctx ){ mCtx = ctx; }
 	
-	public void onPictureTaken( byte[] data, Camera camera ){
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+  public void onPictureTaken( byte[] data, Camera camera ){
 		File pictureFile = getOutputMediaFile( FileColumns.MEDIA_TYPE_IMAGE );
 		if(pictureFile== null) 
 			throw new RuntimeException("Error creating media file,check storage permissions " );
@@ -49,9 +54,9 @@ public class PictureTaker implements PictureCallback{
 
 
 	private static Uri getOutputMediaFileUri( int type ){
-		return Uri.fromFile( getOutputMediaFile(  type ) );
+		return Uri.fromFile( getOutputMediaFile(  type) );
 	}
-	private static File getOutputMediaFile( int type ){
+	private static File getOutputMediaFile( int type){
 		File mediaStorageDir =
 			new File( Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES ), "Marvin" );
 		if( !mediaStorageDir.exists() ){
@@ -59,11 +64,13 @@ public class PictureTaker implements PictureCallback{
 				throw new RuntimeException("Failed to create directory");
 			}
 		}
-		
-		String timeStamp = Installation.getTimestamp();
+
+		String timeStamp = new SimpleDateFormat("yyyyMMddHHmmssSSS")
+        .format(Installation
+        .getTimestamp());
 		File mediaFile;
 		if( type == FileColumns.MEDIA_TYPE_IMAGE ){
-			mediaFile = new File( mediaStorageDir.getPath() + File.separator + 
+			mediaFile = new File( mediaStorageDir.getPath() + File.separator +
 														"IMG_"+ timeStamp + ".jpg" );
 		}else if( type == FileColumns.MEDIA_TYPE_VIDEO ){
 			mediaFile = new File( mediaStorageDir.getPath() + File.separator +

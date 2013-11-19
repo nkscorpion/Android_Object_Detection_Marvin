@@ -48,8 +48,8 @@ public class Installation{
 	
 	public static void setContext( Context ctx ){mContext = ctx;}
 
-	public static String getTimestamp(){
-		String timestamp =new SimpleDateFormat("yyyMMddHHmmssSSS").format(new Date() );
-		return timestamp;
-	} 
+	public static  Date getTimestamp(){
+      return new Date();
+	}
+
 }

@@ -1,5 +1,7 @@
 package com.tstine.marvinas;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Request implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -8,10 +10,10 @@ public class Request implements Serializable {
 	private final String imagePath;
   private final String message;
 	private final String installId;
-	private final String timestamp;
+	private final Date timestamp;
 
 	public Request( final String imagePath, final String installId,
-									final String timestamp, final String message ){
+									final Date timestamp, final String message ){
 		this.imagePath = imagePath;
 		this.installId = installId;
 		this.timestamp = timestamp;
@@ -23,5 +25,10 @@ public class Request implements Serializable {
   public String getInstallId(){return this.installId;}
 	public String getId(){return this.id;}
 	public String getImagePath(){return this.imagePath;}
-  public String getTimestamp(){return this.timestamp;}
+    public String getTimestamp(){return getTimestamp("yyyyMMddHHmmssSSS");}
+  public String getTimestamp(String format){
+      return new SimpleDateFormat(format).format(
+          this.timestamp);
+  }
+
 }
