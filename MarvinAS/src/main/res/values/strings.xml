@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Marvin</string>
+    <string name="capture_text">Capture</string>
+    <string name="extra_button">Unbind</string>
+    <string name="noConnection">Sorry, no internet connection detected </string>
+    <string name="alert_dialog_ok">Ok</string>
+    <string name="alert_dialog_cancel">Nevermind</string>
+    <string name="user_input_dialog_title">What do you want to know about this\?</string>
+    <string name="text_input_hint">Enter text here</string>
+    <string name="listening_prompt">Listening...\n</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_process_list">ProcessListActivity</string>
+    <string name="title_section1">All results</string>
+</resources>

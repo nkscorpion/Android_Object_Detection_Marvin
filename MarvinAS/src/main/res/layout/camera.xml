@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    >
+  <FrameLayout
+      android:id="@+id/camera_preview"
+      android:layout_width="fill_parent"
+      android:layout_height="fill_parent"
+      android:orientation="vertical"
+      >
+  </FrameLayout>
+
+  <Button
+      android:id="@+id/button_capture"
+      android:layout_width="72dp"
+      android:layout_height="72dp"
+      android:layout_alignParentBottom="true"
+      android:layout_centerHorizontal="true"
+      android:onClick="onClickPicture"
+      android:text="capture" />
+
+  <Button
+      android:id="@+id/see_results"
+      android:layout_width="48dp"
+      android:layout_height="48dp"
+      android:layout_alignParentBottom="true"
+      android:layout_alignParentLeft="true"
+      android:text="Results" />
+  
+</RelativeLayout>
+
+
+
