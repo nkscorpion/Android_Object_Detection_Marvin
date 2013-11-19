@@ -8,6 +8,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -168,7 +169,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
             ImageView img = (ImageView) row.findViewById( R.id.image);
             Bitmap bmp = BitmapFactory.decodeFile(request.getImagePath());
             if( bmp == null)
-                throw new RuntimeException("bmp is null");
+                Log.d(Const.TAG, "bmp is null");
             img.setImageBitmap(BitmapFactory.decodeFile(request.getImagePath()));
 
             //img.setImageResource(R.drawable.ic_launcher);
