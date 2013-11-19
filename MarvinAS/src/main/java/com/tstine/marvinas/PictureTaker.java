@@ -27,7 +27,7 @@ public class PictureTaker implements PictureCallback{
 			FileOutputStream fos = new FileOutputStream( pictureFile );
 			fos.write( data );
 			fos.close();
-			MediaScannerConnection
+        MediaScannerConnection
 				.scanFile( mCtx,
 									 new String[] {pictureFile.toString()},
 									 null,

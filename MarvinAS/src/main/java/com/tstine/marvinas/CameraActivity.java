@@ -58,6 +58,7 @@ public class CameraActivity extends Activity{
 	public void doPositiveClick(String userInput, File picFile ){
     //addToPollQueueService(userInput);
     Request request = new Request(
+        picFile.getPath(),
         picFile.getName(),
         Installation.getId(),
         Installation.getTimestamp(),

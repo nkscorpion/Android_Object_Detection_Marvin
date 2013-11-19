@@ -70,7 +70,7 @@ public class AddToDynamoService extends IntentService{
     map.put( D_USER_RESPONSE_ATTRIBUTE,
         new AttributeValue().withS( NO_USER_RESPONSE ) );
     map.put( D_IMAGE_NAME_ATTRIBUTE,
-        new AttributeValue().withS( request.getImagePath() ) );
+        new AttributeValue().withS( request.getImageName() ) );
     map.put( D_PERCENT_COMPLETE_ATTRIBUTE,
         new AttributeValue().withN("0") );
     map.put( D_USER_MESSAGE_ATTRIBUTE,

@@ -28,7 +28,7 @@ public class AddToSimpleDBService extends IntentService{
 																true );
 		ReplaceableAttribute imageNameAttribute = 
 			new ReplaceableAttribute( IMAGE_NAME_ATTRIBUTE,
-																request.getImagePath(),
+																request.getImageName(),
 																true);
 		ReplaceableAttribute ipAddressAttribute =
 			new ReplaceableAttribute( IP_ADDRESS_ATTRIBUTE,

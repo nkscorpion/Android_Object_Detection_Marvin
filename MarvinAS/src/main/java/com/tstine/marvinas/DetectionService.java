@@ -20,7 +20,7 @@ public class DetectionService extends IntentService{
 
 	}
 	private void addPictureToBucket( Request request ){
-		Intent intent = new Intent( null, Uri.parse(request.getImagePath()),
+		Intent intent = new Intent( null, Uri.parse(request.getImageName()),
 																this, AddPictureToBucketService.class);
 		startService( intent );
 	}

@@ -42,7 +42,7 @@ public class AddToQueueService extends IntentService{
       Log.e(TAG, "Could not create a valid queue");
       throw new RuntimeException("Error, I could not create a valid queue");
     }
-		String message = request.getImagePath() + "\n" + request.getId() + "\n" + request.getMessage();
+		String message = request.getImageName() + "\n" + request.getId() + "\n" + request.getMessage();
 		String messageId = sqsClient.sendMessage( new SendMessageRequest( queueUrl, message)).getMessageId();
 	}
 }
