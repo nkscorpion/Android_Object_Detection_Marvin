@@ -64,9 +64,10 @@ public class CameraActivity extends Activity{
         Installation.getTimestamp(),
         userInput
     );
-    Intent detectionIntent = new Intent( this, DetectionService.class);
-    detectionIntent.putExtra( REQUEST_EXTRA_KEY, request);
-    //startService( detectionIntent );
+      Intent detectionIntent = new Intent( this, DetectionService.class);
+      detectionIntent.putExtra( REQUEST_EXTRA_KEY, request);
+      if(Const.SEND_TO_AWS)
+          startService( detectionIntent );
     Intent showListIntent = new Intent(this, ProcessListActivity.class );
     showListIntent.putExtra( REQUEST_EXTRA_KEY, request );
     startActivity( showListIntent );

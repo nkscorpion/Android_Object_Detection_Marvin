@@ -170,7 +170,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
             Bitmap bmp = BitmapFactory.decodeFile(request.getImagePath());
             if( bmp == null)
                 Log.d(Const.TAG, "bmp is null");
-            img.setImageBitmap(BitmapFactory.decodeFile(request.getImagePath()));
+            img.setImageBitmap(bmp);
 
             //img.setImageResource(R.drawable.ic_launcher);
             TextView message = (TextView) row.findViewById( R.id.message );

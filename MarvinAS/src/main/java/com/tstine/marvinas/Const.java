@@ -41,5 +41,6 @@ public class Const{
 	public static final String WORK_QUEUE_NAME = "MarvinToDo";
 
   public static final String USER_MESSAGE_EXTRA = "user_message";
+    public static final boolean SEND_TO_AWS = true;
 
 }

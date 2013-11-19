@@ -20,7 +20,8 @@ public class AddPictureToBucketService extends IntentService{
 		AmazonS3Client s3Client =
 			new AmazonS3Client( new BasicAWSCredentials( ACCESS_KEY,
 																									 SECRET_KEY ) );
-		File picFile = new File( intent.getData().getPath() );
+		File picFile = new File( ((Request)intent.getSerializableExtra(REQUEST_EXTRA_KEY))
+        .getImagePath());
 		List<Bucket> buckets = s3Client.listBuckets();
 		Bucket bucket = null;
 		for( Bucket b : buckets ){
@@ -36,7 +37,7 @@ public class AddPictureToBucketService extends IntentService{
 																								 picFile );
 		s3Client.putObject(por);
 		} catch( Exception exception ) {
-			throw new RuntimeException("Error putting object");
+        throw new RuntimeException("Error putting object");
 		}
 	}
 

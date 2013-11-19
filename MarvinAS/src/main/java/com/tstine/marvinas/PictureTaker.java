@@ -45,11 +45,6 @@ public class PictureTaker implements PictureCallback{
 		camera.startPreview();
 		DialogFragment frag = new UserInputDialog(pictureFile);
 		frag.show( ((CameraActivity)mCtx).getFragmentManager(), "dialog" );
-
-		//change this
-		// Intent intent = new Intent( null, Uri.fromFile( pictureFile ),
-		// CameraActivity.this, DetectionService.class );
-		// startService(intent);
 	}
 
 
