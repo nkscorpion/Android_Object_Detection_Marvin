@@ -11,6 +11,8 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.regions.Region;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
@@ -33,36 +35,44 @@ public class AddToDynamoService extends IntentService{
 	@Override
 	protected void onHandleIntent( Intent intent ){
 		Request request = (Request )intent.getSerializableExtra( REQUEST_EXTRA_KEY );
-		AmazonDynamoDBClient ddbClient =
+      if( request == null )
+          return;
+      AmazonDynamoDBClient ddbClient =
         new AmazonDynamoDBClient(
             new BasicAWSCredentials ( ACCESS_KEY, SECRET_KEY ) );
 
 		ddbClient.setRegion( Region.getRegion( Regions.US_WEST_2 ) );
 		
-		HashMap<String, AttributeValue> map = createAttribMap(request);
+		//HashMap<String, AttributeValue> map = createAttribMap(request);
 		List<String> tables = ddbClient.listTables().getTableNames();
     if( tables.indexOf( MARVIN_DYNAMO_TABLE) == -1 ){
       throw new RuntimeException("The table does not exist for Dynamo DB");
       //createTable();
      }
 
-		for( String table : tables ){ 
-      Log.d( TAG, "table name: " + table);
-		}
-		PutItemRequest pir = new PutItemRequest( MARVIN_DYNAMO_TABLE, map);
-		ddbClient.putItem( pir );
-		Log.d( TAG, "Added to database!");
-	}
+      DynamoEntry entry = new DynamoEntry();
+      entry.setUserId(Installation.getId());
+      entry.setTimestamp(Long.parseLong(request.getTimestamp()));
+      entry.setDetectionResults(Const.NO_DETECTION_RESULTS);
+      entry.setImageFile( request.getImageName());
+      entry.setStatus(Const.UNPROCESSED_STATUS);
+      entry.setUserInputMessage(request.getMessage());
+      entry.setUserResponse(Const.NO_USER_RESPONSE);
+      DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
+      mapper.save(entry);
+
+      //PutItemRequest pir = new PutItemRequest( MARVIN_DYNAMO_TABLE, map);
+      //ddbClient.putItem( pir );
+  }
 
   private HashMap<String, AttributeValue> createAttribMap(Request request){
     HashMap<String, AttributeValue> map =
         new HashMap<String, AttributeValue>();
-    map.put( D_ID_ATTRIBUTE,
-        new AttributeValue().withS( request.getId() ));
-    map.put(D_TIMESTAMP_ATTRIBUTE,
-        new AttributeValue().withN(request.getTimestamp()));
-    map.put( D_USER_ID_ATTRIBUTE,
-        new AttributeValue().withS( Installation.getId() ));
+      map.put( D_USER_ID_ATTRIBUTE,
+          new AttributeValue().withS( Installation.getId() ));
+
+      map.put(D_TIMESTAMP_ATTRIBUTE,
+          new AttributeValue().withN(request.getTimestamp()));
     map.put( D_DETECTION_RESULT_ATTRIBUTE,
         new AttributeValue().withS( NO_DETECTION_RESULTS));
     map.put( D_STATUS_ATTRIBUTE,

@@ -2,6 +2,7 @@ package com.tstine.marvinas;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Handler;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -21,9 +22,31 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedList;
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
+import com.amazonaws.services.dynamodbv2.model.Condition;
+import com.amazonaws.services.dynamodbv2.model.QueryRequest;
+import com.amazonaws.services.dynamodbv2.model.QueryResult;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+
+
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import static com.tstine.marvinas.Const.TAG;
 
 public class ProcessListActivity extends ActionBarActivity implements ActionBar.OnNavigationListener {
 
@@ -55,7 +78,32 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
                     getString(R.string.title_section1),
                 }),
             this);
-        mData.add(0, (Request)getIntent().getSerializableExtra(Const.REQUEST_EXTRA_KEY));
+        new Thread( new Runnable() {
+            public void run(){
+                AmazonDynamoDBClient dbClient =
+                    new AmazonDynamoDBClient(
+                        new BasicAWSCredentials( Const.ACCESS_KEY, Const.SECRET_KEY ) );
+                dbClient.setRegion( Region.getRegion(Regions.US_WEST_2) );
+                List<String> tableNames = dbClient.listTables().getTableNames();
+
+                Condition rangeKeyCondition = new Condition()
+                    .withComparisonOperator(ComparisonOperator.GT.toString())
+                    .withAttributeValueList(new AttributeValue().withN("0"));
+                DynamoEntry entryKey = new DynamoEntry();
+                entryKey.setUserId(Installation.getId());
+                DynamoDBMapper mapper = new DynamoDBMapper(dbClient);
+                 DynamoDBQueryExpression<DynamoEntry> expression = new
+                     DynamoDBQueryExpression<DynamoEntry>()
+                    .withHashKeyValues(entryKey)
+                    .withRangeKeyCondition(Const.D_TIMESTAMP_ATTRIBUTE, rangeKeyCondition);
+
+                List<DynamoEntry> list = mapper.query(DynamoEntry.class, expression);
+            }
+        }).start();
+
+
+
+        mData.add(0, (Request) getIntent().getSerializableExtra(Const.REQUEST_EXTRA_KEY));
     }
 
     @Override

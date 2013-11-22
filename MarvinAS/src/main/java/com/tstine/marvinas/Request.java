@@ -20,7 +20,7 @@ public class Request implements Serializable {
       this.imageName = imageName;
 		this.installId = installId;
 		this.timestamp = timestamp;
-		this.id = installId + "_" + Installation.randomGen.nextInt(100)+ "_" + timestamp;
+		this.id = installId + "_" + timestamp;
     this.message = message;
 	}
 

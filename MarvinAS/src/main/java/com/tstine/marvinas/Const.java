@@ -24,7 +24,7 @@ public class Const{
 	public static final String USER_RESPONSE_ATTRIBUTE = "userResponse";
 	public static final String DETECTION_RESULTS_ATTRIBUTE = "detectionResults";
 
-	public static final String MARVIN_DYNAMO_TABLE = "MarvinsTable";
+	public static final String MARVIN_DYNAMO_TABLE = "MarvinTable";
 	public static final String D_ID_ATTRIBUTE = "Id";
 	public static final String D_TIMESTAMP_ATTRIBUTE = "Timestamp";
 	public static final String D_USER_ID_ATTRIBUTE = "UserId";

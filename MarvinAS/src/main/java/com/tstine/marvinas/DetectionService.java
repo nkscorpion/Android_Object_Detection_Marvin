@@ -20,13 +20,14 @@ public class DetectionService extends IntentService{
 
 	}
 	private void addPictureToBucket( Request request ){
-		Intent intent = new Intent( null, Uri.parse(request.getImageName()),
-																this, AddPictureToBucketService.class);
+		Intent intent = new Intent( this, AddPictureToBucketService.class);
+      intent.putExtra(REQUEST_EXTRA_KEY, request );
+
 		startService( intent );
 	}
 
 	private void addRequestToDatabase( Request request ){
-		Intent intent = new Intent();;
+		Intent intent = new Intent();
 		if( ACTIVE_DB.equals("SIMPLE_DB") )
       intent.setClass(this, AddToSimpleDBService.class );
 		else
