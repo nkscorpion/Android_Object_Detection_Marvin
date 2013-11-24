@@ -20,6 +20,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -41,7 +42,11 @@ import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 
 
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -55,7 +60,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
      * current dropdown position.
      */
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
-    private List<Request> mData = new ArrayList<Request>();
+    private List<String> mData = new ArrayList<String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,9 +106,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
             }
         }).start();
 
-
-
-        mData.add(0, (Request) getIntent().getSerializableExtra(Const.REQUEST_EXTRA_KEY));
+        //mData.add((Request) getIntent().getSerializableExtra(Const.REQUEST_EXTRA_KEY));
     }
 
     @Override
@@ -146,6 +149,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
     public boolean onNavigationItemSelected(int position, long id) {
         // When the given dropdown item is selected, show its contents in the
         // container view.
+        mData = new ArrayList<String>(Arrays.asList(Const.imageThumbUrls));
         ListFragment frag = ProcessListFragment.newInstance(position+1, mData);
         getSupportFragmentManager().beginTransaction()
             .replace(R.id.container, frag )
@@ -162,13 +166,13 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
-        private List<Request> mData = null;
+        private List<String> mData = null;
 
         /**
          * Returns a new instance of this fragment for the given section
          * number.
          */
-        public static ProcessListFragment newInstance(int sectionNumber, List<Request> data) {
+        public static ProcessListFragment newInstance(int sectionNumber, List<String> data) {
             ProcessListFragment fragment = new ProcessListFragment(data);
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
@@ -176,7 +180,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
             return fragment;
         }
 
-        public ProcessListFragment(List<Request> data ) {
+        public ProcessListFragment(List<String> data ) {
             this.mData = data;
         }
 
@@ -188,9 +192,9 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
 
     }
     public static class MyAdapter extends BaseAdapter{
-        private List<Request> mData = null;
+        private List<String> mData = null;
         private Context mCtx;
-        public MyAdapter( Context ctx, List<Request> data ){
+        public MyAdapter( Context ctx, List<String> data ){
             super();
             mData = data;
             mCtx = ctx;
@@ -198,7 +202,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
         @Override
         public int getCount(){return mData.size();}
         @Override
-        public Request getItem( int position ){return mData.get(position);}
+        public String getItem( int position ){return mData.get(position);}
 
         @Override
         public long getItemId(int position) {
@@ -210,21 +214,28 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
             if( convertView != null )
                 return convertView;
 
-            Request request = getItem(position);
+            //Request request = getItem(position);
+            String imgPath = getItem(position);
             LayoutInflater inflater =
                 (LayoutInflater)mCtx.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
             View row = inflater.inflate(R.layout.request_row, null);
             ImageView img = (ImageView) row.findViewById( R.id.image);
-            Bitmap bmp = BitmapFactory.decodeFile(request.getImagePath());
+            //Bitmap bmp = BitmapFactory.decodeFile(request.getImagePath());
+            int containerHeight = (int)mCtx.getResources().getDimension(R.dimen
+                .process_imageview_height);
+            int containerWidth = (int) mCtx.getResources().getDimension(R.dimen
+                .process_imageview_width);
+            Bitmap bmp = BitmapHandler.decodeSampledBitmap(imgPath,
+                containerWidth, containerHeight );
             if( bmp == null)
                 Log.d(Const.TAG, "bmp is null");
             img.setImageBitmap(bmp);
-
-            //img.setImageResource(R.drawable.ic_launcher);
             TextView message = (TextView) row.findViewById( R.id.message );
-            message.setText( request.getMessage() );
+            message.setText( "This was my message ");
+            //message.setText( request.getMessage() );
             TextView time = (TextView) row.findViewById(R.id.date);
-            time.setText(request.getTimestamp("EEE MMM F yyyy h:m:s a"));
+            //time.setText(request.getTimestamp("EEE MMM F yyyy h:m:s a"));
+            time.setText(new SimpleDateFormat("EEE MMM F yyyy h:m:s a").format(new Date()));
             return row;
         }
 

@@ -6,8 +6,8 @@
     >
     <RelativeLayout
         android:id="@+id/image_container"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="@dimen/process_imageview_width"
+        android:layout_height="@dimen/process_imageview_height"
         android:background="#F00"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="8dp"
