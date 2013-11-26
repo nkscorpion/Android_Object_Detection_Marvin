@@ -1,26 +1,19 @@
 package com.tstine.marvinas;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Handler;
-import android.support.v4.app.ListFragment;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v4.app.ListFragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -29,29 +22,15 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedList;
-import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
-import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.QueryRequest;
-import com.amazonaws.services.dynamodbv2.model.QueryResult;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 
-
-import java.io.Serializable;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import static com.tstine.marvinas.Const.TAG;
 
 public class ProcessListActivity extends ActionBarActivity implements ActionBar.OnNavigationListener {
 
@@ -139,8 +118,11 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+        switch(id ){
+            case R.id.action_settings:
+                return true;
+            case R.id.action_pause:
+                BitmapWorker.setPaused(!BitmapWorker.getPaused());
         }
         return super.onOptionsItemSelected(item);
     }
@@ -188,16 +170,33 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
             super.onActivityCreated(savedInstanceState);
             setListAdapter(new MyAdapter(getActivity(), this.mData));
             this.setListShown(true);
+            getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(AbsListView view, int scrollState) {
+                    if( scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING)
+                        BitmapWorker.setPaused(true);
+                    else
+                        BitmapWorker.setPaused(false);
+                }
+                @Override
+                public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
+                }
+            });
         }
 
     }
     public static class MyAdapter extends BaseAdapter{
         private List<String> mData = null;
         private Context mCtx;
+        private BitmapWorker mBitmapWorker=null;
         public MyAdapter( Context ctx, List<String> data ){
             super();
             mData = data;
             mCtx = ctx;
+            mBitmapWorker = new BitmapWorker(mCtx);
+            mBitmapWorker.setLoadingBitmap(R.drawable.loading_drawable);
+
         }
         @Override
         public int getCount(){return mData.size();}
@@ -211,25 +210,25 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
         @Override
         public View getView(int position, View convertView,
                             ViewGroup parent ){
-            if( convertView != null )
-                return convertView;
+            //if( convertView != null )
+              //  return convertView;
 
             //Request request = getItem(position);
+
             String imgPath = getItem(position);
             LayoutInflater inflater =
                 (LayoutInflater)mCtx.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
             View row = inflater.inflate(R.layout.request_row, null);
-            ImageView img = (ImageView) row.findViewById( R.id.image);
-            //Bitmap bmp = BitmapFactory.decodeFile(request.getImagePath());
+            ImageView imageView;
+            imageView = (ImageView) row.findViewById( R.id.image);
+
             int containerHeight = (int)mCtx.getResources().getDimension(R.dimen
                 .process_imageview_height);
             int containerWidth = (int) mCtx.getResources().getDimension(R.dimen
                 .process_imageview_width);
-            Bitmap bmp = BitmapHandler.decodeSampledBitmap(imgPath,
-                containerWidth, containerHeight );
-            if( bmp == null)
-                Log.d(Const.TAG, "bmp is null");
-            img.setImageBitmap(bmp);
+            mBitmapWorker.setImageSize(containerWidth, containerHeight);
+            mBitmapWorker.loadImage(getItem(position), imageView);
+
             TextView message = (TextView) row.findViewById( R.id.message );
             message.setText( "This was my message ");
             //message.setText( request.getMessage() );

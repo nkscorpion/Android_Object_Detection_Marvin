@@ -59,6 +59,7 @@ c
             android:name="com.tstine.marvinas.ProcessListActivity"
             android:label="@string/title_activity_process_list"
             android:theme="@style/Theme.AppCompat.Light"
+            android:screenOrientation="portrait"
             >
         </activity>
     </application>

@@ -13,4 +13,6 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_process_list">ProcessListActivity</string>
     <string name="title_section1">All results</string>
+    <string name="empty_list">No items</string>
+    <string name="action_pause">Pause</string>
 </resources>
