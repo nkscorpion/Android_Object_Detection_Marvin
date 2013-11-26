@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,6 +41,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
      */
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
     private List<String> mData = new ArrayList<String>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +86,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
                 List<DynamoEntry> list = mapper.query(DynamoEntry.class, expression);
             }
         }).start();
+
 
         //mData.add((Request) getIntent().getSerializableExtra(Const.REQUEST_EXTRA_KEY));
     }
@@ -170,11 +173,14 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
             super.onActivityCreated(savedInstanceState);
             setListAdapter(new MyAdapter(getActivity(), this.mData));
             this.setListShown(true);
+
             getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
                 @Override
                 public void onScrollStateChanged(AbsListView view, int scrollState) {
-                    if( scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING)
+                    if( scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING){
+                        Log.d(Const.TAG, "Fling!");
                         BitmapWorker.setPaused(true);
+                    }
                     else
                         BitmapWorker.setPaused(false);
                 }
@@ -190,12 +196,17 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
         private List<String> mData = null;
         private Context mCtx;
         private BitmapWorker mBitmapWorker=null;
+
         public MyAdapter( Context ctx, List<String> data ){
             super();
             mData = data;
             mCtx = ctx;
             mBitmapWorker = new BitmapWorker(mCtx);
             mBitmapWorker.setLoadingBitmap(R.drawable.loading_drawable);
+
+            final int maxMemoryKB = (int)(Runtime.getRuntime().maxMemory() / 1024);
+            final int memoryCacheSizeKB = maxMemoryKB / 8;
+            mBitmapWorker.addMemoryCache( memoryCacheSizeKB );
 
         }
         @Override
