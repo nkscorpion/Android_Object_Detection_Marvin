@@ -15,4 +15,6 @@
     <string name="title_section1">All results</string>
     <string name="empty_list">No items</string>
     <string name="action_pause">Pause</string>
+    <string name="mark_correct">Correct</string>
+    <string name="mark_incorrrect">Incorrect</string>
 </resources>

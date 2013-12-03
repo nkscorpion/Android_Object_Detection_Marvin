@@ -4,4 +4,28 @@
 	<item name="android:layout_width">96dp</item>
 	<item name="android:layout_height">96dp</item>
   </style>
+    <style name="imageContainer">
+        <item name="android:layout_width">@dimen/process_imageview_width</item>
+        <item name="android:layout_height">@dimen/process_imageview_height</item>
+        <item name="android:layout_marginLeft">@dimen/process_imageview_left_margin</item>
+        <item name="android:layout_marginRight">@dimen/process_imageview_right_margin</item>
+        <item name="android:layout_marginTop">@dimen/process_imageview_top_margin</item>
+        <item name="android:layout_marginBottom">@dimen/process_imageview_bottom_margin</item>
+    </style>
+    <style name="imageContainer.Loading">
+        <item name="android:background">@color/light_purple</item>
+    </style>
+    <style name="imageContainer.Ready">
+        <item name="android:background">@color/light_green</item>
+    </style>
+    <style name="imageContainer.Viewed">
+        <item name="android:background">@color/light_grey</item>
+    </style>
+
+    <style name="detectionResults" parent="@android:style/TextAppearance.Holo.Large.Inverse">
+        <item name="android:background">@color/off_black</item>
+        <!--<item name="android:textColor">@color/text_white</item>-->
+    </style>
+
 </resources>
+

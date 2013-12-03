@@ -1,9 +1,11 @@
 package com.tstine.marvinas;
-import android.util.Log;
 import java.util.List;
+
+import android.annotation.TargetApi;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PictureCallback;
+import android.os.Build;
 import android.view.SurfaceHolder;
 import java.io.IOException;
 import java.lang.RuntimeException;
@@ -12,11 +14,16 @@ import static com.tstine.marvinas.Const.*;
 public class MarvinCamera{
 	
 	private static Camera mCamera = null;
-	private static int mCameraId = 0;
+
+    public static int getCameraId() {
+        return mCameraId;
+    }
+    private static int mCameraId = 0;
 
 	public static Camera getCamera(){return mCamera;}
 
-	public static Camera initCamera(){
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+  public static Camera initCamera(){
 		if( mCamera == null ){
 			if(Camera.getNumberOfCameras() < 0 )
 				return null;
@@ -27,11 +34,9 @@ public class MarvinCamera{
 				mCamera = Camera.open(mCameraId);
 			}
 			catch(Exception e){
-				Log.d(TAG, "Camera could not be opened");
+				Log.d("Camera could not be opened");
 			}
 		}
-
-
 		return mCamera;
 	}
 
@@ -65,8 +70,8 @@ public class MarvinCamera{
 
 	public static void takePicture( PictureCallback callback ){
 		mCamera.takePicture( null, null, callback );
-		
-		
+
+
 	}
 }
 

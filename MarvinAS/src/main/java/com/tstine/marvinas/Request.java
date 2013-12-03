@@ -5,7 +5,8 @@ import java.util.Date;
 
 public class Request implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
+
+    public static final String MESSAGE_DATE_FORMAT ="yyyyMMddHHmmssSSS";
 	private final String id;
 	private final String imagePath;
   private final String message;
@@ -20,7 +21,7 @@ public class Request implements Serializable {
       this.imageName = imageName;
 		this.installId = installId;
 		this.timestamp = timestamp;
-		this.id = installId + "_" + timestamp;
+		this.id = installId + "_" + getTimestamp();
     this.message = message;
 	}
 
@@ -29,7 +30,7 @@ public class Request implements Serializable {
 	public String getId(){return this.id;}
 	public String getImagePath(){return this.imagePath;}
     public String getImageName(){return this.imageName;}
-    public String getTimestamp(){return getTimestamp("yyyyMMddHHmmssSSS");}
+    public String getTimestamp(){return getTimestamp(MESSAGE_DATE_FORMAT);}
   public String getTimestamp(String format){
       return new SimpleDateFormat(format).format(
           this.timestamp);

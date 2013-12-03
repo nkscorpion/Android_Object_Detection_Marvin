@@ -6,15 +6,9 @@
     >
     <RelativeLayout
         android:id="@+id/image_container"
-        android:layout_width="@dimen/process_imageview_width"
-        android:layout_height="@dimen/process_imageview_height"
-        android:background="#F00"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginRight="16dp"
+        style="@style/imageContainer"
+        android:background="#0FF"
         >
-
         <ImageView
             android:id="@+id/image"
             android:layout_width="match_parent"
@@ -22,8 +16,16 @@
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
             android:layout_centerInParent="true"
-            android:layout_margin="4dp"
+            android:layout_margin="@dimen/imageview_border"
             android:scaleType="centerCrop"
+            />
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:background="#8FFF"
+            android:layout_margin="@dimen/imageview_border"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
             />
     </RelativeLayout>
 

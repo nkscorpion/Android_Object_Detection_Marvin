@@ -23,6 +23,7 @@ android {
 }
 
 dependencies {
+    compile 'com.jakewharton:butterknife:4.0.1'
     compile 'com.android.support:appcompat-v7:18.+'
     compile 'com.android.support:support-v4:18.0.+'
     compile files('/home/taylor/Dev/aws-android-sdk-1.7.0/lib/aws-android-sdk-1.7.0.jar', '/home/taylor/Dev/aws-android-sdk-1.7.0/lib/aws-android-sdk-1.7.0-ddb-mapper.jar')

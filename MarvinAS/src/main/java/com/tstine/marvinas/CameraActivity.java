@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.content.Intent;
 import android.content.DialogInterface;
 import android.content.Context;
+import android.view.OrientationEventListener;
 import android.view.View;
 import android.app.AlertDialog;
 import android.widget.FrameLayout;
@@ -18,6 +19,7 @@ import static com.tstine.marvinas.Const.*;
 
 
 public class CameraActivity extends Activity{
+    public OrientationEventListener orientationEventListener;
 	@Override
 	public void onCreate( Bundle savedInstanceState ){
 		super.onCreate( savedInstanceState );
@@ -28,6 +30,18 @@ public class CameraActivity extends Activity{
     Installation.setContext( this );
 	}
 
+    @Override
+    public void onStart(){
+        super.onStart();
+        orientationEventListener = new OrientationEventListener(this) {
+            @Override
+            public void onOrientationChanged(int orientation) {
+                Log.d("orientation changed: " + orientation);
+            }
+        };
+        //orientationEventListener.enable();
+    }
+
 	@Override	
 	protected void onResume(){
 		super.onResume();
@@ -36,12 +50,12 @@ public class CameraActivity extends Activity{
 			Toast.makeText( this, "Error starting camera", Toast.LENGTH_SHORT )
 				.show();
 		}
-
     FrameLayout preview = (FrameLayout) findViewById( R.id.camera_preview );
-		
     if( preview != null ){
-			preview.removeAllViews();
-			preview.addView( new CameraPreview( this, MarvinCamera.getCamera() ), 0 );
+        preview.removeAllViews();
+        preview.addView( new CameraPreview( this, MarvinCamera.getCamera(),
+            MarvinCamera.getCameraId() ),
+            0 );
 		}
 	}
 
@@ -50,6 +64,12 @@ public class CameraActivity extends Activity{
 		super.onPause();
 		MarvinCamera.stopAndRelease();
 	}
+
+    @Override
+    public void onStop(){
+        super.onStop();
+        //orientationEventListener.disable();
+    }
 
 	public void onClickPicture( View view ){
 		MarvinCamera.takePicture( new PictureTaker(this) );
@@ -91,6 +111,7 @@ public class CameraActivity extends Activity{
 			return false;
 		return net.isConnectedOrConnecting();
 	}
+
 
 
 }

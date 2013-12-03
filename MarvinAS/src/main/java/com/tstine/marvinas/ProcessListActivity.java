@@ -1,46 +1,45 @@
 package com.tstine.marvinas;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
 
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
+
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 
 public class ProcessListActivity extends ActionBarActivity implements ActionBar.OnNavigationListener {
 
     /**
      * The serialization (saved instance state) Bundle key representing the
-     * current dropdown position.
-     */
+     * current dropdown position.     */
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
-    private List<String> mData = new ArrayList<String>();
+    private PaginatedQueryList<DynamoEntry> mQueryResults = null;
+    private DynamoEntry mJustAdded = null;
 
 
     @Override
@@ -64,31 +63,25 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
                     getString(R.string.title_section1),
                 }),
             this);
-        new Thread( new Runnable() {
-            public void run(){
-                AmazonDynamoDBClient dbClient =
-                    new AmazonDynamoDBClient(
-                        new BasicAWSCredentials( Const.ACCESS_KEY, Const.SECRET_KEY ) );
-                dbClient.setRegion( Region.getRegion(Regions.US_WEST_2) );
-                List<String> tableNames = dbClient.listTables().getTableNames();
-
-                Condition rangeKeyCondition = new Condition()
-                    .withComparisonOperator(ComparisonOperator.GT.toString())
-                    .withAttributeValueList(new AttributeValue().withN("0"));
-                DynamoEntry entryKey = new DynamoEntry();
-                entryKey.setUserId(Installation.getId());
-                DynamoDBMapper mapper = new DynamoDBMapper(dbClient);
-                 DynamoDBQueryExpression<DynamoEntry> expression = new
-                     DynamoDBQueryExpression<DynamoEntry>()
-                    .withHashKeyValues(entryKey)
-                    .withRangeKeyCondition(Const.D_TIMESTAMP_ATTRIBUTE, rangeKeyCondition);
-
-                List<DynamoEntry> list = mapper.query(DynamoEntry.class, expression);
-            }
-        }).start();
 
 
-        //mData.add((Request) getIntent().getSerializableExtra(Const.REQUEST_EXTRA_KEY));
+        Intent intent = getIntent();
+        Request request = (Request)intent.getSerializableExtra(Const.REQUEST_EXTRA_KEY);
+        mQueryResults = AWSWorker.queryDynamo(request);
+
+        mJustAdded = new DynamoEntry();
+        mJustAdded.setImageUrl(request.getImagePath());
+        mJustAdded.setUserInputMessage(request.getMessage());
+        mJustAdded.setTimestamp(Long.parseLong(request.getTimestamp()));
+        mJustAdded.setImageFile(request.getImageName());
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    @Override
+    public void onStart(){
+        super.onStart();
+        if( !getActionBar().isShowing())
+            getActionBar().show();
     }
 
     @Override
@@ -134,120 +127,187 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
     public boolean onNavigationItemSelected(int position, long id) {
         // When the given dropdown item is selected, show its contents in the
         // container view.
-        mData = new ArrayList<String>(Arrays.asList(Const.imageThumbUrls));
-        ListFragment frag = ProcessListFragment.newInstance(position+1, mData);
+        ListFragment frag = ProcessListFragment.newInstance(position+1, mQueryResults, mJustAdded);
         getSupportFragmentManager().beginTransaction()
-            .replace(R.id.container, frag )
+            .replace(R.id.container, frag)
             .commit();
         return true;
     }
 
+
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class ProcessListFragment extends ListFragment {
+    public static class ProcessListFragment extends ListFragment implements AdapterView
+        .OnItemClickListener, AdapterView.OnItemLongClickListener, AbsListView.OnScrollListener
+    {
         /**
          * The fragment argument representing the section number for this
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
-        private List<String> mData = null;
+        private PaginatedQueryList<DynamoEntry> mData = null;
+        private DynamoEntry mJustAdded = null;
+        private BaseAdapter mAdapter;
 
         /**
          * Returns a new instance of this fragment for the given section
          * number.
          */
-        public static ProcessListFragment newInstance(int sectionNumber, List<String> data) {
-            ProcessListFragment fragment = new ProcessListFragment(data);
+        public static ProcessListFragment newInstance(int sectionNumber, PaginatedQueryList<DynamoEntry> data, DynamoEntry justAdded
+                                                      ) {
+            ProcessListFragment fragment = new ProcessListFragment(data, justAdded);
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
             fragment.setArguments(args);
             return fragment;
         }
 
-        public ProcessListFragment(List<String> data ) {
+        public ProcessListFragment(PaginatedQueryList<DynamoEntry> data, DynamoEntry justAdded ) {
             this.mData = data;
+            this.mJustAdded = justAdded;
         }
+
 
         public void onActivityCreated(Bundle savedInstanceState){
             super.onActivityCreated(savedInstanceState);
-            setListAdapter(new MyAdapter(getActivity(), this.mData));
+            mAdapter = new MyAdapter(getActivity(), this.mData, this.mJustAdded);
+            setListAdapter( mAdapter );
             this.setListShown(true);
+            getListView().setOnItemClickListener(this);
+            getListView().setOnItemLongClickListener(this);
+            getListView().setOnScrollListener(this);
+        }
 
-            getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
-                @Override
-                public void onScrollStateChanged(AbsListView view, int scrollState) {
-                    if( scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING){
-                        Log.d(Const.TAG, "Fling!");
-                        BitmapWorker.setPaused(true);
-                    }
-                    else
-                        BitmapWorker.setPaused(false);
-                }
-                @Override
-                public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        public void onItemClick(AdapterView<?> parent, View view, int position,
+                                long id){
+            ViewHolder viewHolder = (ViewHolder)view.getTag();
+            viewHolder.entry.setImageUrl(AWSWorker.getPresignedUrl(viewHolder.entry.getImageFile()));
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            DetectionResultsFragment newFragment = new DetectionResultsFragment(viewHolder.entry);
+            transaction.replace(R.id.container, newFragment);
+            transaction.addToBackStack(null);
+            transaction.commit();
+        }
 
-                }
-            });
+        public boolean onItemLongClick(AdapterView<?> parent, View view,
+                                    int position, long id ){
+            return false;
+        }
+
+        @Override
+        public void onScrollStateChanged(AbsListView view, int scrollState) {
+            if( scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING){
+                BitmapWorker.setPaused(true);
+            }
+            else
+                BitmapWorker.setPaused(false);
+        }
+        @Override
+        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
         }
 
     }
     public static class MyAdapter extends BaseAdapter{
-        private List<String> mData = null;
+        private PaginatedQueryList<DynamoEntry> mData = null;
         private Context mCtx;
-        private BitmapWorker mBitmapWorker=null;
+        private static BitmapWorker sBitmapWorker =null;
+        private DynamoEntry mJustAdded = null;
 
-        public MyAdapter( Context ctx, List<String> data ){
+        public MyAdapter( Context ctx, PaginatedQueryList<DynamoEntry> data, DynamoEntry justAdded ){
             super();
             mData = data;
+            mJustAdded = justAdded;
             mCtx = ctx;
-            mBitmapWorker = new BitmapWorker(mCtx);
-            mBitmapWorker.setLoadingBitmap(R.drawable.loading_drawable);
+            if( sBitmapWorker == null ){
+                sBitmapWorker = new BitmapWorker(mCtx);
+                sBitmapWorker.setLoadingBitmap(R.drawable.loading_drawable);
 
-            final int maxMemoryKB = (int)(Runtime.getRuntime().maxMemory() / 1024);
-            final int memoryCacheSizeKB = maxMemoryKB / 8;
-            mBitmapWorker.addMemoryCache( memoryCacheSizeKB );
-
+                final int maxMemoryKB = (int)(Runtime.getRuntime().maxMemory() / 1024);
+                final int memoryCacheSizeKB = maxMemoryKB / 8;
+                Log.d("cache size: " + memoryCacheSizeKB );
+                sBitmapWorker.addMemoryCache(memoryCacheSizeKB);
+            }
         }
         @Override
         public int getCount(){return mData.size();}
         @Override
-        public String getItem( int position ){return mData.get(position);}
+        public DynamoEntry getItem( int position ){
+            if(position == 0 ){
+                return mJustAdded;
+            }
+            else{
+                DynamoEntry entry = mData.get(position--);
+                entry.setImageUrl(AWSWorker.getPresignedUrl(entry.getImageFile()));
+                return entry;
+            }
+        }
+
 
         @Override
         public long getItemId(int position) {
             return 0;
         }
+
         @Override
         public View getView(int position, View convertView,
                             ViewGroup parent ){
-            //if( convertView != null )
-              //  return convertView;
 
-            //Request request = getItem(position);
+            View row = convertView;
+            ViewHolder viewHolder;
+            if( row == null ){
+                LayoutInflater inflater =
+                    (LayoutInflater)mCtx.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
+                row = inflater.inflate(R.layout.request_row, null);
+                DynamoEntry entry = getItem(position);
+                viewHolder = new ViewHolder(row, entry, (int)mCtx.getResources().getDimension(R.dimen.process_imageview_width), (int)mCtx.getResources().getDimension(R.dimen.process_imageview_height));
+                row.setTag(viewHolder);
+            }else{
+                viewHolder = (ViewHolder) row.getTag();
+            }
+            sBitmapWorker.loadImage(viewHolder.entry.getImageUrl(), viewHolder.imageView,
+                viewHolder.entry.getImageFile(), viewHolder.imageWidth,
+                viewHolder.imageHeight);
 
-            String imgPath = getItem(position);
-            LayoutInflater inflater =
-                (LayoutInflater)mCtx.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
-            View row = inflater.inflate(R.layout.request_row, null);
-            ImageView imageView;
-            imageView = (ImageView) row.findViewById( R.id.image);
+            if( viewHolder.entry.getDetectionResults().equals(Const.NO_DETECTION_RESULTS) ){
+                viewHolder.imageContainer.setBackgroundColor(mCtx.getResources().getColor(R.color.light_purple));
+                viewHolder.progressBar.setVisibility(View.VISIBLE);
+                viewHolder.entry.addQueuePollerTask();
+            }else{
+                if( viewHolder.entry.getUserResponse().equals(Const.NO_USER_RESPONSE)){
+                    viewHolder.imageContainer.setBackgroundColor(mCtx.getResources().getColor(R.color.light_green));
+                }else{
+                    viewHolder.imageContainer.setBackgroundColor(mCtx.getResources().getColor(R.color.light_grey));
+                }
 
-            int containerHeight = (int)mCtx.getResources().getDimension(R.dimen
-                .process_imageview_height);
-            int containerWidth = (int) mCtx.getResources().getDimension(R.dimen
-                .process_imageview_width);
-            mBitmapWorker.setImageSize(containerWidth, containerHeight);
-            mBitmapWorker.loadImage(getItem(position), imageView);
-
-            TextView message = (TextView) row.findViewById( R.id.message );
-            message.setText( "This was my message ");
-            //message.setText( request.getMessage() );
-            TextView time = (TextView) row.findViewById(R.id.date);
-            //time.setText(request.getTimestamp("EEE MMM F yyyy h:m:s a"));
-            time.setText(new SimpleDateFormat("EEE MMM F yyyy h:m:s a").format(new Date()));
+            }
+            viewHolder.messageTextView.setText( viewHolder.entry.getUserInputMessage() );
+            Date date = new SimpleDateFormat(Request.MESSAGE_DATE_FORMAT)
+                .parse(viewHolder.entry.getTimestamp().toString(), new ParsePosition(0));
+            viewHolder.timeTextView.setText(new SimpleDateFormat("EEE MMM F yyyy h:m:s a").format
+                (date));
             return row;
         }
 
     }
+
+    public static class ViewHolder{
+        @InjectView(R.id.image) ImageView imageView;
+        int imageWidth;
+        int imageHeight;
+        @InjectView(R.id.image_container)RelativeLayout imageContainer;
+        @InjectView(R.id.progress_bar) ProgressBar progressBar;
+        @InjectView(R.id.message) TextView messageTextView;
+        @InjectView(R.id.date) TextView timeTextView;
+        DynamoEntry entry;
+        public ViewHolder(View view, DynamoEntry entry, int width, int height){
+            ButterKnife.inject(this, view);
+            this.entry = entry;
+            this.imageWidth = width;
+            this.imageHeight=height;
+
+        }
+    }
+
 }

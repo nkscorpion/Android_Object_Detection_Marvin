@@ -20,7 +20,6 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import android.util.Log;
 import static com.tstine.marvinas.Const.*;
 
 public class PollResponseService extends Service{
@@ -30,7 +29,7 @@ public class PollResponseService extends Service{
 
 	@Override
 	public IBinder onBind( Intent intent ){
-		Log.d(TAG, "Service Bound!");
+		Log.d( "Service Bound!");
 		incrementQueueRequests();
 		return mBinder;
 	}
@@ -78,12 +77,12 @@ public class PollResponseService extends Service{
 					//do something with the message here
 					sqsClient.deleteMessage( new DeleteMessageRequest( queueUrl,
 																														 queueMessage.get(0).getReceiptHandle() ) );
-					Log.d( TAG, "Got answer: " + queueMessage.get(0).getBody() );
+					Log.d( "Got answer: " + queueMessage.get(0).getBody() );
 				}
-				Log.d(TAG, "Queue searched: " + mNumRequests +
+				Log.d("Queue searched: " + mNumRequests +
 							" Message size: " + queueMessage.size());
 			}
-			Log.d(TAG, "Queue polled!");
+			Log.d("Queue polled!");
 			return null;
 		}
 	};

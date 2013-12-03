@@ -42,9 +42,9 @@ public class PictureTaker implements PictureCallback{
 		} catch( IOException e ){
 			throw new RuntimeException("Error accessing file " + e.getMessage() );
 		}
-		camera.startPreview();
-		DialogFragment frag = new UserInputDialog(pictureFile);
-		frag.show( ((CameraActivity)mCtx).getFragmentManager(), "dialog" );
+      camera.startPreview();
+      DialogFragment frag = new UserInputDialog(pictureFile);
+      frag.show( ((CameraActivity)mCtx).getFragmentManager(), "dialog" );
 	}
 
 

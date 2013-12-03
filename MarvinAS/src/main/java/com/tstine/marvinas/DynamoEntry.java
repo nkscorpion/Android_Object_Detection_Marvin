@@ -12,8 +12,21 @@ public class DynamoEntry {
     private String imageFile;
     private String status;
     private String userInputMessage;
-    private String UserResponse;
+    private String userResponse;
+    private String imageUrl;
+    private AWSWorker.ResultQueuePollerTask queuePollerTask;
 
+    public DynamoEntry(){
+        userId = "";
+        timestamp=0L;
+        detectionResults=Const.NO_DETECTION_RESULTS;
+        imageFile="";
+        status=Const.UNPROCESSED_STATUS;
+        userInputMessage = "";
+        userResponse ="";
+        imageUrl="";
+        queuePollerTask = null;
+    }
     @DynamoDBHashKey(attributeName=Const.D_USER_ID_ATTRIBUTE)
     public String getUserId() {
         return userId;
@@ -71,11 +84,24 @@ public class DynamoEntry {
 
     @DynamoDBAttribute(attributeName=Const.D_USER_RESPONSE_ATTRIBUTE)
     public String getUserResponse() {
-        return UserResponse;
+        return userResponse;
     }
 
     public void setUserResponse(String userResponse) {
-        UserResponse = userResponse;
+        this.userResponse = userResponse;
+    }
+
+    public String getImageUrl(){return imageUrl;}
+
+    public void setImageUrl(String url){imageUrl = url;}
+
+    public void cancelQueuePollerTask(){queuePollerTask.cancel(true);}
+    public AWSWorker.ResultQueuePollerTask getQueuePollerTask(){return queuePollerTask;}
+    public void addQueuePollerTask(){
+        if(queuePollerTask == null ){
+            queuePollerTask = new AWSWorker.ResultQueuePollerTask(this);
+            queuePollerTask.execute();
+        }
     }
 
     public String toString(){
