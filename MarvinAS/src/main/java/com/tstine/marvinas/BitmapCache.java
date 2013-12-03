@@ -25,7 +25,7 @@ public class BitmapCache {
     private final long DISK_CACHE_SIZE = 1024L * 1024L * 10L;
     private boolean mDiskCacheStarting;
     private Object mDiskCacheLock = new Object();
-    private static ArrayList<BitmapCache> sInstances;
+    private static ArrayList<BitmapCache> sInstances = new ArrayList<BitmapCache>();
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR1)
     public void addMemoryCache(int size ){
