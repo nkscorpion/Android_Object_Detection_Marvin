@@ -2,7 +2,6 @@ package com.tstine.marvinas;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Environment;
@@ -60,6 +59,7 @@ public class BitmapCache {
     public void addToMemoryCache(String key, BitmapDrawable bitmap){
         if( mMemoryCache != null ){
             if( mMemoryCache.get(key) == null ){
+                int size = mMemoryCache.size();
                 mMemoryCache.put(key,bitmap);
             }
         }
@@ -74,6 +74,7 @@ public class BitmapCache {
         return bitmap;
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR1)
     public void clearMemoryCache(){
         if( mMemoryCache != null ){
             mMemoryCache.evictAll();
@@ -85,7 +86,6 @@ public class BitmapCache {
             cache.clearMemoryCache();
         }
     }
-
 
     //TODO:Finish this implementation of a get from disk cache method
     public BitmapDrawable getFromDiskCache(String key ){

@@ -171,7 +171,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
 
         public void onActivityCreated(Bundle savedInstanceState){
             super.onActivityCreated(savedInstanceState);
-            mAdapter = new MyAdapter(getActivity(), this.mData, this.mJustAdded);
+            mAdapter = new MyAdapter(getActivity(), this.mData, this.mJustAdded, this);
             setListAdapter( mAdapter );
             this.setListShown(true);
             getListView().setOnItemClickListener(this);
@@ -182,7 +182,9 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
         public void onItemClick(AdapterView<?> parent, View view, int position,
                                 long id){
             ViewHolder viewHolder = (ViewHolder)view.getTag();
-            viewHolder.entry.setImageUrl(AWSWorker.getPresignedUrl(viewHolder.entry.getImageFile()));
+            if(position>1){
+                viewHolder.entry.setImageUrl(AWSWorker.getPresignedUrl(viewHolder.entry.getImageFile()));
+            }
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
             DetectionResultsFragment newFragment = new DetectionResultsFragment(viewHolder.entry);
             transaction.replace(R.id.container, newFragment);
@@ -208,40 +210,50 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
 
         }
 
+        public void notifyDatasetChanged(){
+            mAdapter.notifyDataSetChanged();
+        }
+
     }
     public static class MyAdapter extends BaseAdapter{
         private PaginatedQueryList<DynamoEntry> mData = null;
         private Context mCtx;
         private static BitmapWorker sBitmapWorker =null;
         private DynamoEntry mJustAdded = null;
+        private ProcessListActivity.ProcessListFragment mListFragment = null;
 
-        public MyAdapter( Context ctx, PaginatedQueryList<DynamoEntry> data, DynamoEntry justAdded ){
+        public MyAdapter( Context ctx, PaginatedQueryList<DynamoEntry> data, DynamoEntry justAdded,
+                          ProcessListFragment parent){
             super();
             mData = data;
             mJustAdded = justAdded;
             mCtx = ctx;
+            mListFragment = parent;
             if( sBitmapWorker == null ){
                 sBitmapWorker = new BitmapWorker(mCtx);
                 sBitmapWorker.setLoadingBitmap(R.drawable.loading_drawable);
-
                 final int maxMemoryKB = (int)(Runtime.getRuntime().maxMemory() / 1024);
-                final int memoryCacheSizeKB = maxMemoryKB / 8;
-                Log.d("cache size: " + memoryCacheSizeKB );
+                final int totalMemoryKB = (int)(Runtime.getRuntime().totalMemory() /1024);
+                final int freeMemoryKB = (int)(Runtime.getRuntime().freeMemory() / 1024);
+                final int memoryCacheSizeKB = (maxMemoryKB- totalMemoryKB)/ 8;
+                Log.d("cache size: " + maxMemoryKB + ", " +totalMemoryKB +", " + freeMemoryKB + ", " + memoryCacheSizeKB );
                 sBitmapWorker.addMemoryCache(memoryCacheSizeKB);
             }
         }
         @Override
-        public int getCount(){return mData.size();}
+        public int getCount(){return 1;}//return mData.size();}
         @Override
         public DynamoEntry getItem( int position ){
+            DynamoEntry value = null;
             if(position == 0 ){
-                return mJustAdded;
+                value=mJustAdded;
             }
-            else{
+            else if(false){
                 DynamoEntry entry = mData.get(position--);
                 entry.setImageUrl(AWSWorker.getPresignedUrl(entry.getImageFile()));
-                return entry;
+                value= entry;
             }
+            return value;
         }
 
 
@@ -260,21 +272,24 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
                 LayoutInflater inflater =
                     (LayoutInflater)mCtx.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
                 row = inflater.inflate(R.layout.request_row, null);
-                DynamoEntry entry = getItem(position);
-                viewHolder = new ViewHolder(row, entry, (int)mCtx.getResources().getDimension(R.dimen.process_imageview_width), (int)mCtx.getResources().getDimension(R.dimen.process_imageview_height));
-                row.setTag(viewHolder);
+                viewHolder = new ViewHolder(row, getItem(position), (int)mCtx.getResources().getDimension(R.dimen.process_imageview_width), (int)mCtx.getResources().getDimension(R.dimen.process_imageview_height), mListFragment);
             }else{
                 viewHolder = (ViewHolder) row.getTag();
+                viewHolder.entry =getItem(position);
             }
-            sBitmapWorker.loadImage(viewHolder.entry.getImageUrl(), viewHolder.imageView,
-                viewHolder.entry.getImageFile(), viewHolder.imageWidth,
-                viewHolder.imageHeight);
+            sBitmapWorker.loadImage()
+                .withDataLocation(viewHolder.entry.getImageUrl())
+                .withImageView(viewHolder.imageView)
+                .withIdentifier(viewHolder.entry.getImageFile())
+                .withSampling(viewHolder.imageWidth, viewHolder.imageHeight)
+                .start();
 
             if( viewHolder.entry.getDetectionResults().equals(Const.NO_DETECTION_RESULTS) ){
                 viewHolder.imageContainer.setBackgroundColor(mCtx.getResources().getColor(R.color.light_purple));
                 viewHolder.progressBar.setVisibility(View.VISIBLE);
                 viewHolder.entry.addQueuePollerTask();
             }else{
+                viewHolder.progressBar.setVisibility(View.GONE);
                 if( viewHolder.entry.getUserResponse().equals(Const.NO_USER_RESPONSE)){
                     viewHolder.imageContainer.setBackgroundColor(mCtx.getResources().getColor(R.color.light_green));
                 }else{
@@ -287,6 +302,7 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
                 .parse(viewHolder.entry.getTimestamp().toString(), new ParsePosition(0));
             viewHolder.timeTextView.setText(new SimpleDateFormat("EEE MMM F yyyy h:m:s a").format
                 (date));
+            row.setTag(viewHolder);
             return row;
         }
 
@@ -301,12 +317,14 @@ public class ProcessListActivity extends ActionBarActivity implements ActionBar.
         @InjectView(R.id.message) TextView messageTextView;
         @InjectView(R.id.date) TextView timeTextView;
         DynamoEntry entry;
-        public ViewHolder(View view, DynamoEntry entry, int width, int height){
+        ProcessListFragment processListFragment;
+        public ViewHolder(View view, DynamoEntry entry, int width, int height, ProcessListFragment processListFragment){
             ButterKnife.inject(this, view);
             this.entry = entry;
+            entry.viewHolder = this;
             this.imageWidth = width;
             this.imageHeight=height;
-
+            this.processListFragment = processListFragment;
         }
     }
 

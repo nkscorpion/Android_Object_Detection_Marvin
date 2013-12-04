@@ -1,5 +1,6 @@
 package com.tstine.marvinas;
 import java.util.List;
+
 import android.util.Log;
 import android.app.IntentService;
 import android.content.Intent;
@@ -12,6 +13,9 @@ import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+
+import org.apache.commons.codec.binary.Base64;
+
 import static com.tstine.marvinas.Const.*;
 
 public class AddToQueueService extends IntentService{
@@ -42,7 +46,10 @@ public class AddToQueueService extends IntentService{
       Log.e(TAG, "Could not create a valid queue");
       throw new RuntimeException("Error, I could not create a valid queue");
     }
-		String message = request.getImageName() + "\n" + request.getId() + "\n" + request.getMessage();
-		String messageId = sqsClient.sendMessage( new SendMessageRequest( queueUrl, message)).getMessageId();
+      Base64 base64 = new Base64();
+      String message = request.getImageName() + "\n" + request.getId() + "\n" + request.getMessage();
+      String encodedMessage = new String(base64.encode(message.getBytes()));
+
+		String messageId = sqsClient.sendMessage( new SendMessageRequest( queueUrl, encodedMessage)).getMessageId();
 	}
 }

@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.os.Environment;
 import android.widget.ImageView;
 
 import java.io.BufferedInputStream;
@@ -18,7 +17,6 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -90,7 +88,6 @@ public class BitmapWorker{
             task.executeOnExecutor( AsyncTask.THREAD_POOL_REJECTION_EXECUTOR,
                 loadRequest);
         }
-
     }
 
     public static boolean getPaused(){return mPaused;}
@@ -281,6 +278,7 @@ public class BitmapWorker{
             bmpHeight / sampleSize > containerHeight ){
             sampleSize*=2;
         }
+        Log.d("sample size: " + sampleSize);
         return sampleSize;
     }
 
@@ -288,6 +286,7 @@ public class BitmapWorker{
         private  WeakReference<ImageView> mImageViewReference;
         private Object dataLocation;
         private Object identifier;
+        private ImageLoadRequest request;
 
         public BitmapWorkerTask(ImageView imageView){
             mImageViewReference = new WeakReference<ImageView>(imageView);
@@ -306,7 +305,7 @@ public class BitmapWorker{
                     } catch( InterruptedException e ){}
                 }
             }
-            ImageLoadRequest request = params[0];
+            request = params[0];
             dataLocation = request.dataLocation;
             identifier = request.identifier;
             final String dataString = String.valueOf(dataLocation);
@@ -320,16 +319,10 @@ public class BitmapWorker{
             //if the bitmap is not null then it is is the disk cache
             if( bitmap == null && !isCancelled() && attached != null
                 && !mExitTask) {
-                try{
-                    bitmap = processBitmap(request);
-                }catch(OutOfMemoryError e){
-                    //TODO: come up with a better way to handle out of memory errors
-                    Log.d("Warning: out of memory error: dumping cache");
-                    BitmapCache.clearAllMemoryCaches();
-                    this.executeOnExecutor( AsyncTask.THREAD_POOL_REJECTION_EXECUTOR,
-                        request );
+                bitmap = processBitmap(request);
+                //TODO: come up with a better way to handle out of memory errors
                 }
-            }
+
 
             if( bitmap != null && mBitmapCache != null ){
                 //TODO: change this to add to cache so this puts the bitmap in both the memory
@@ -341,8 +334,9 @@ public class BitmapWorker{
 
         @Override
         public void onPostExecute(BitmapDrawable bmp ){
-            if( isCancelled() || mExitTask)
+            if( isCancelled() || mExitTask){
                 bmp = null;
+            }
             final ImageView imageView = getAttachedImageView();
             if( imageView != null && bmp != null ){
                 imageView.setImageDrawable( bmp );
@@ -407,7 +401,7 @@ public class BitmapWorker{
             withIdentifier(identifier);
             withImageView(imageView);
             if( width!=-1 && height!= -1){
-                withSubsampiling(width,height);
+                withSampling(width, height);
             }
         }
         public ImageLoadRequest withDataLocation(Object location){
@@ -422,7 +416,7 @@ public class BitmapWorker{
             identifier = id;
             return this;
         }
-        public ImageLoadRequest withSubsampiling(int width, int height){
+        public ImageLoadRequest withSampling(int width, int height){
             subSample = true;
             mImageWidth = width;
             mImageHeight = height;

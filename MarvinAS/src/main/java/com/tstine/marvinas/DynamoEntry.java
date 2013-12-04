@@ -13,19 +13,16 @@ public class DynamoEntry {
     private String status;
     private String userInputMessage;
     private String userResponse;
-    private String imageUrl;
-    private AWSWorker.ResultQueuePollerTask queuePollerTask;
+
 
     public DynamoEntry(){
-        userId = "";
+        userId = Installation.getId();
         timestamp=0L;
         detectionResults=Const.NO_DETECTION_RESULTS;
         imageFile="";
         status=Const.UNPROCESSED_STATUS;
         userInputMessage = "";
-        userResponse ="";
-        imageUrl="";
-        queuePollerTask = null;
+        userResponse =Const.NO_USER_RESPONSE;
     }
     @DynamoDBHashKey(attributeName=Const.D_USER_ID_ATTRIBUTE)
     public String getUserId() {
@@ -89,37 +86,6 @@ public class DynamoEntry {
 
     public void setUserResponse(String userResponse) {
         this.userResponse = userResponse;
-    }
-
-    public String getImageUrl(){return imageUrl;}
-
-    public void setImageUrl(String url){imageUrl = url;}
-
-    public void cancelQueuePollerTask(){queuePollerTask.cancel(true);}
-    public AWSWorker.ResultQueuePollerTask getQueuePollerTask(){return queuePollerTask;}
-    public void addQueuePollerTask(){
-        if(queuePollerTask == null ){
-            queuePollerTask = new AWSWorker.ResultQueuePollerTask(this);
-            queuePollerTask.execute();
-        }
-    }
-
-    public String toString(){
-        StringBuilder sb = new StringBuilder();
-        sb.append(getUserId());
-        sb.append(" | ");
-        sb.append(getTimestamp());
-        sb.append(" | ");
-        sb.append(getDetectionResults());
-        sb.append(" | ");
-        sb.append(getImageFile());
-        sb.append(" | ");
-        sb.append(getStatus());
-        sb.append(" | ");
-        sb.append(getUserInputMessage());
-        sb.append(" | ");
-        sb.append(getUserResponse());
-        return sb.toString();
     }
 
 }

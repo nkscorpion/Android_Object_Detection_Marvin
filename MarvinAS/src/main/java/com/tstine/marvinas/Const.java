@@ -16,7 +16,10 @@ public class Const{
     public static final String UNPROCESSED_STATUS = "unprocessed";
     public static final String PROCESSED_STATUS = "processed";
     public static final String NO_USER_RESPONSE = "unanswered";
+    public static final String CORRECT_RESPONSE="correct";
+    public static final String INCORRECT_RESPONSE="incorrect";
     public static final String NO_DETECTION_RESULTS = "awaiting results";
+
 
     public static final String MARVINS_DOMAIN = "Marvin";
     public static final String ID_ATTRIBUTE = "id";
@@ -44,7 +47,7 @@ public class Const{
     public static final String WORK_QUEUE_NAME = "MarvinToDo";
 
     public static final String USER_MESSAGE_EXTRA = "user_message";
-    public static final boolean SEND_TO_AWS = false;
+    public static final boolean SEND_TO_AWS = true;
 
     //sets how long the poll response service will sleep in between polling the queue
     public static final Integer POLL_SLEEP_TIME=300;

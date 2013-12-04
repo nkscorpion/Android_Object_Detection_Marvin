@@ -37,7 +37,7 @@ public class AddPictureToBucketService extends IntentService{
 																								 picFile );
 		s3Client.putObject(por);
 		} catch( Exception exception ) {
-        throw new RuntimeException("Error putting object");
+        //throw new RuntimeException("Error putting object");
 		}
 	}
 

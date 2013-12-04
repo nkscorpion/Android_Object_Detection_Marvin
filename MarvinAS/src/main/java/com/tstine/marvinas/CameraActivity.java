@@ -14,6 +14,9 @@ import android.widget.EditText;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import org.apache.commons.codec.EncoderException;
+import org.apache.commons.codec.binary.Base64;
+
 import java.io.File;
 import static com.tstine.marvinas.Const.*;
 
@@ -76,6 +79,7 @@ public class CameraActivity extends Activity{
   }
 
 	public void doPositiveClick(String userInput, File picFile ){
+
     //addToPollQueueService(userInput);
     Request request = new Request(
         picFile.getPath(),
