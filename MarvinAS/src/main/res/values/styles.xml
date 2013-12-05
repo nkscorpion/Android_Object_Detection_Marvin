@@ -18,8 +18,9 @@
         <item name="android:background">@color/light_grey</item>
     </style>
 
-    <style name="detectionResults" parent="@android:style/TextAppearance.Holo.Large.Inverse">
+    <style name="detectionResults" parent="@style/Theme.AppCompat">
         <item name="android:background">@color/off_black</item>
+        <item name="android:textSize">28sp</item>
         <!--<item name="android:textColor">@color/text_white</item>-->
     </style>
 
