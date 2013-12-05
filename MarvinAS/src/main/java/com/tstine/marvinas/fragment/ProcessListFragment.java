@@ -89,8 +89,8 @@ public class ProcessListFragment extends ListFragment implements AdapterView
     public void onItemClick(AdapterView<?> parent, View view, int position,
                             long id){
         DynamoEntry entry = mAdapter.getItem(position);
-        if( !entry.getDetectionResults().equals(Const.NO_DETECTION_RESULTS)
-            && entry.getUserResponse().equals(Const.NO_USER_RESPONSE) ){
+        if( !entry.getDetectionResults().equals(Const.NO_DETECTION_RESULTS)){
+            //&& entry.getUserResponse().equals(Const.NO_USER_RESPONSE) ){
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
             DetectionResultsFragment newFragment = new DetectionResultsFragment(entry);
             transaction.add(R.id.container, newFragment);

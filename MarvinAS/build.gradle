@@ -10,6 +10,9 @@ apply plugin: 'android'
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://github.com/dahlgren/vpi-aar/raw/master"
+    }
 }
 
 android {
@@ -23,6 +26,7 @@ android {
 }
 
 dependencies {
+    compile ('com.viewpagerindicator:library:2.4.2-SNAPSHOT@aar') {transitive = true}
     compile 'com.jakewharton:butterknife:4.0.1'
     compile 'com.android.support:appcompat-v7:18.+'
     compile 'com.android.support:support-v4:18.0.+'
