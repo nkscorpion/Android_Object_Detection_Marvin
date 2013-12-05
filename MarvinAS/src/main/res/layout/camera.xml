@@ -15,17 +15,16 @@
 
   <Button
       android:id="@+id/button_capture"
-      android:layout_width="72dp"
-      android:layout_height="72dp"
+      android:layout_width="@dimen/capture_button_width"
+      android:layout_height="@dimen/capture_button_height"
       android:layout_alignParentBottom="true"
       android:layout_centerHorizontal="true"
-      android:onClick="onClickPicture"
       android:text="capture" />
 
   <Button
       android:id="@+id/see_results"
-      android:layout_width="48dp"
-      android:layout_height="48dp"
+      android:layout_width="@dimen/result_button_width"
+      android:layout_height="@dimen/result_button_height"
       android:layout_alignParentBottom="true"
       android:layout_alignParentLeft="true"
       android:text="Results" />

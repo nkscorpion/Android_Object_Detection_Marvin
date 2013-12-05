@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.v4.app.FragmentManager;
 import android.widget.ImageView;
 
 import java.io.BufferedInputStream;
@@ -25,65 +26,87 @@ import java.util.concurrent.Executors;
  */
 public class BitmapWorker{
     //TODO: Implement a pre-processing step to look through current files to see if pictures are
-    // on the device
+    // TODO: on the device
+
+    //Resources for the current context
     private Resources mResources;
+    //Bitmap to show while we are running a BitmapWorkerTask
     private Bitmap mLoadingBitmap;
-    protected static Object mPauseLock = new Object();
+
+    //Variable to tell all of the currently processing BitmapWorkerTasks to pause
     protected static boolean mPaused = false;
+    protected static Object mPauseLock = new Object();
+
+    //tells the BitmapWorkerTasks to exit
     protected static boolean mExitTask = false;
-    private ExecutorService cachedThreadPoolExecutor;
+
+    //Instance of the bitmapcache
     private BitmapCache mBitmapCache = null;
-    private Context mCtx;
 
     public BitmapWorker(Context ctx ){
         this(ctx, 0, 0);
     }
     public BitmapWorker(Context ctx, int width, int height ){
         this(ctx.getResources(), width, height );
-        mCtx = ctx;
     }
 
     public BitmapWorker( Resources resources, int width, int height ){
         mResources = resources;
-        cachedThreadPoolExecutor = Executors.newCachedThreadPool();
-        mBitmapCache = new BitmapCache();
     }
 
-    public void addMemoryCache(int size ){
-        mBitmapCache.addMemoryCache(size);
+    /**
+     * Adds a memory cache to this instance of the bitmap worker
+     * @param percent the percent of memory that should be used for the cache
+     */
+    public void addMemoryCache(float percent, FragmentManager fm ){
+        mBitmapCache = BitmapCache.getInstance(fm, percent);
     }
 
-    public void addDiskCache(File cacheDir){
-        mBitmapCache.addDiskCache(cacheDir);
-
-    }
-
+    /**
+     * loads an image using the builder paradigm.  An example implementation would be:
+     * loadImage()
+     * .withDataLocation("http://www.google.com/example.jpg")
+     * .withImageView(imageView)
+     * .withIdentifier("example.jpg")
+     * .withSampleSize( 250, 250)
+     * .start()
+     *
+     * @return ImageLoadRequest that can be used with a builder paradigm to add elements to
+     * the request
+     */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public ImageLoadRequest loadImage(){return new ImageLoadRequest(this);}
-    public void loadImage(Object dataLocation, ImageView imageView,  Object identifier,
-                          int width, int height){
-        new ImageLoadRequest(this, dataLocation, imageView, identifier, width, height).start();
-    }
-    public void loadImage(Object dataLocation, ImageView imageView, Object identifier){
-        new ImageLoadRequest(this, dataLocation, imageView, identifier, -1, -1).start();
-    }
+
+    /**
+     * Initiates a load from the given ImageLoadRequest.  This method first checks the cache
+     * if it exsists for the drawable.  If the cache exists and there is an image in it, then
+     * the bitmap is set from there.  If there is no cache or the drawable is not in the
+     * cache, the method creates a new AsyncTask to download the bitmap
+     * @param loadRequest The ImageLoadRequest request to be processed
+     */
     private void startLoad(ImageLoadRequest loadRequest ){
         if( loadRequest.dataLocation == null || loadRequest.imageView == null ){
             //TODO: Load a bitmap here the indicates the bitmap could not be downloaded
             return;
         }
         BitmapDrawable bitmapDrawable = null;
+        //If the cache exists, search it for the bitmap
         if( mBitmapCache != null ){
             bitmapDrawable = mBitmapCache.getFromMemoryCache( String.valueOf(loadRequest.identifier) );
         }
+        //If the bitmap is not null, then it was in the cache
         if( bitmapDrawable != null ){
             Log.d("image in cache");
             loadRequest.imageView.setImageDrawable( bitmapDrawable);
         }
+        //If the bitmap was not in the cache, check to see if we can cancel the work
         else if( cancelPotentialWork( loadRequest.dataLocation, loadRequest.imageView )){
+            //Create a new task to load the bitmap
             final BitmapWorkerTask task = new BitmapWorkerTask( loadRequest.imageView );
+            //Set a drawable that has a reference to the task
             final AsyncDrawable asyncDrawable =
                 new AsyncDrawable( mResources, mLoadingBitmap, task );
+            //set the image drawable to the AsycDrawable
             loadRequest.imageView.setImageDrawable( asyncDrawable );
             task.executeOnExecutor( AsyncTask.THREAD_POOL_REJECTION_EXECUTOR,
                 loadRequest);
@@ -140,7 +163,7 @@ public class BitmapWorker{
         }
         return null;
     }
-    private BitmapDrawable processBitmap( ImageLoadRequest request ){
+    private Bitmap processBitmap( ImageLoadRequest request ){
         //This is a resources
         Object dataLocation = request.dataLocation;
         BitmapDrawable bitmapDrawable= null;
@@ -158,7 +181,7 @@ public class BitmapWorker{
             //This is a url
             if( strLoc.indexOf("http") != -1 ){
                 if(request.subSample){
-                    bitmap = getSampledBitmapFromUrl(strLoc, request.mImageWidth, request.mImageHeight);
+                    bitmap = getSampledBitmapFromUrl(strLoc, request.mImageWidth, request.mImageHeight, mBitmapCache);
                 }
                 else{
                     bitmap= getBitmapFromUrl(strLoc);
@@ -174,18 +197,14 @@ public class BitmapWorker{
 
             }
         }
-        if( bitmap!= null ){
-            bitmapDrawable = new BitmapDrawable( mResources, bitmap);
-        }
-        return bitmapDrawable;
+        return bitmap;
     }
 
     public static Bitmap getBitmapFromUrl(String src){
-        return getSampledBitmapFromUrl(src, -1, -1);
+        return getSampledBitmapFromUrl(src, -1, -1, null);
     }
     public static Bitmap getSampledBitmapFromUrl( String src, int containerWidth,
-                                           int containerHeight ){
-        //TODO: implement sampling so a smaller size of the bitmap is downloaded see below
+                                           int containerHeight, BitmapCache cache ){
         URL imageUrl = null;
         HttpURLConnection connection= null;
         InputStream is = null;
@@ -198,10 +217,14 @@ public class BitmapWorker{
             if(containerHeight!= -1 && containerWidth!=-1){
                 options.inJustDecodeBounds = true;
                 bmp = BitmapFactory.decodeStream(is, null, options);
-                int sampleSize = getSampleSize( containerWidth, containerHeight, options.outWidth,
+                options.inSampleSize= getSampleSize( containerWidth, containerHeight, options.outWidth,
                     options.outHeight );
+                //TODO: here we test to see if we can use inBitmap, implement similar functionality
+                //TODO: to all of the get***BitmapFrom***() methods
+                if(Utils.hasHoneycomb()){
+                    addInBitmapOptions(options, cache);
+                }
                 options.inJustDecodeBounds = false;
-                options.inSampleSize = sampleSize;
                 if( is.markSupported() ){
                     is.reset();
                 }
@@ -282,6 +305,24 @@ public class BitmapWorker{
         return sampleSize;
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private static void addInBitmapOptions(BitmapFactory.Options options, BitmapCache cache){
+        //inBitmap only works with mutable bitmaps so force the decoder to return
+        //mutable bitmaps
+        options.inMutable = true;
+        if( cache != null ){
+            //Try and find a bitmap to use for inBitmap
+            //TODO:implement getBitmapFromReusableSet to retrieve bitmap from HashSet
+            Bitmap inBitmap = cache.getBitmapFromReusableSet(options);
+            if( inBitmap!= null ){
+                options.inBitmap = inBitmap;
+            }
+        }
+    }
+
+    /**
+     * The AsyncTask that asynchronously process the image
+     */
     public class BitmapWorkerTask extends AsyncTask<ImageLoadRequest, Void, BitmapDrawable> {
         private  WeakReference<ImageView> mImageViewReference;
         private Object dataLocation;
@@ -297,10 +338,10 @@ public class BitmapWorker{
 
         @Override
         public BitmapDrawable doInBackground(ImageLoadRequest... params){
+            //Wiat here if the work is paused and the task hasn't been cancelled
             synchronized (mPauseLock){
                 while( mPaused && !isCancelled()){
                     try{
-                        //here we are waiting for notification to resume our task
                         mPauseLock.wait();
                     } catch( InterruptedException e ){}
                 }
@@ -309,27 +350,44 @@ public class BitmapWorker{
             dataLocation = request.dataLocation;
             identifier = request.identifier;
             final String dataString = String.valueOf(dataLocation);
-            BitmapDrawable bitmap = null;
+            Bitmap bitmap = null;
+            BitmapDrawable drawable = null;
+
             ImageView attached = getAttachedImageView();
+            //If there is an image cache and the task is not cancelled
+            //and the ImageView that was originally bound is still bound to this task
+            //and we have not been told to exit early, the get the image from the Disk cache
             if(mBitmapCache != null && !isCancelled() && attached != null
                 && !mExitTask ){
                 //TODO:here add a retrieval from the DISK cache
             }
 
-            //if the bitmap is not null then it is is the disk cache
+            //if the bitmap was not found in the cache, and the task has not been cancelled
+            // and the attached image view is still valid, and we have not been told to
+            // exit early, then call the main process bitmap method
             if( bitmap == null && !isCancelled() && attached != null
                 && !mExitTask) {
                 bitmap = processBitmap(request);
-                //TODO: come up with a better way to handle out of memory errors
+                //TODO: move this implementation to a subclass and make BitmapWorker abstract
                 }
 
-
+            //If the bitmap was successfully processed and there is a cache available, add the bitmap
+            //to the cache for future use.
             if( bitmap != null && mBitmapCache != null ){
+                if(Utils.hasHoneycomb()){
+                    //If we're running on Honeycomb put it in a standard BitmapDrawable
+                    drawable = new BitmapDrawable(mResources, bitmap);
+                }else{
+                    //TODO:is this correct? should you put it in a RecyclingBitampDrawable everytime?
+                    //Running on Gingerbread or older, put it in a RecyclingBitmapDrawable
+                    drawable = new RecyclingBitmapDrawable(mResources, bitmap);
+
+                }
                 //TODO: change this to add to cache so this puts the bitmap in both the memory
                 // and image cache
-                mBitmapCache.addToMemoryCache(String.valueOf(identifier), bitmap);
+                mBitmapCache.addToMemoryCache(String.valueOf(identifier), drawable);
             }
-            return bitmap;
+            return drawable;
         }
 
         @Override

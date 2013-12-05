@@ -48,6 +48,7 @@ public class Const{
 
     public static final String USER_MESSAGE_EXTRA = "user_message";
     public static final boolean SEND_TO_AWS = true;
+    public static final boolean ONE_LIST_VALUE= false;
 
     //sets how long the poll response service will sleep in between polling the queue
     public static final Integer POLL_SLEEP_TIME=300;

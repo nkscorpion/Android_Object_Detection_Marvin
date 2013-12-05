@@ -13,6 +13,12 @@ public class DynamoEntry {
     private String status;
     private String userInputMessage;
     private String userResponse;
+    private String imageUrl;
+
+
+
+    private AWSWorker.ResultQueuePollerTask queuePollerTask;
+    private ProcessListFragment.ViewHolder viewHolder;
 
 
     public DynamoEntry(){
@@ -87,5 +93,37 @@ public class DynamoEntry {
     public void setUserResponse(String userResponse) {
         this.userResponse = userResponse;
     }
+
+
+    @DynamoDBIgnore
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    @DynamoDBIgnore
+    public AWSWorker.ResultQueuePollerTask getQueuePollerTask(){return queuePollerTask;}
+    public void setQueuePollerTask(AWSWorker.ResultQueuePollerTask queuePollerTask) {
+        if( this.queuePollerTask == null || this.queuePollerTask.getStatus().equals(AsyncTask.Status.FINISHED)){
+            if(this.queuePollerTask == null){
+                this.queuePollerTask = new AWSWorker.ResultQueuePollerTask(this);
+            }
+            else
+                this.queuePollerTask = queuePollerTask;
+            this.queuePollerTask.execute();
+        }
+    }
+
+    @DynamoDBIgnore
+    public ProcessListFragment.ViewHolder getViewHolder() {
+        return viewHolder;
+    }
+    @DynamoDBIgnore
+    public void setViewHolder(ProcessListFragment.ViewHolder viewHolder) {
+        this.viewHolder = viewHolder;
+    }
+
 
 }

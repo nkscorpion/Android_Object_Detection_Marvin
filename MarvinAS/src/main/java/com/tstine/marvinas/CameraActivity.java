@@ -1,23 +1,19 @@
 package com.tstine.marvinas;
 import android.app.Activity;
-import android.net.Uri;
 import android.os.Bundle;
 import android.content.Intent;
-import android.content.DialogInterface;
 import android.content.Context;
 import android.view.OrientationEventListener;
-import android.view.View;
-import android.app.AlertDialog;
 import android.widget.FrameLayout;
 import android.widget.Toast;
-import android.widget.EditText;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
-import org.apache.commons.codec.EncoderException;
-import org.apache.commons.codec.binary.Base64;
-
 import java.io.File;
+
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 import static com.tstine.marvinas.Const.*;
 
 
@@ -30,7 +26,8 @@ public class CameraActivity extends Activity{
 			startActivity( new Intent( this, NoServiceActivity.class ) );
 		else
 			setContentView( R.layout.camera );
-    Installation.setContext( this );
+      Installation.setContext( this );
+      ButterKnife.inject(this);
 	}
 
     @Override
@@ -74,9 +71,16 @@ public class CameraActivity extends Activity{
         //orientationEventListener.disable();
     }
 
-	public void onClickPicture( View view ){
-		MarvinCamera.takePicture( new PictureTaker(this) );
-  }
+    @OnClick(R.id.button_capture)
+    public void onClickPicture( ){
+        MarvinCamera.takePicture( new PictureTaker(this) );
+    }
+
+    @OnClick(R.id.see_results)
+    public void onClickResults(){
+        Intent intent = new Intent(this, ResultsActivity.class);
+        startActivity(intent);
+    }
 
 	public void doPositiveClick(String userInput, File picFile ){
 
@@ -92,9 +96,9 @@ public class CameraActivity extends Activity{
       detectionIntent.putExtra( REQUEST_EXTRA_KEY, request);
       if(Const.SEND_TO_AWS)
           startService( detectionIntent );
-    Intent showListIntent = new Intent(this, ProcessListActivity.class );
-    showListIntent.putExtra( REQUEST_EXTRA_KEY, request );
-    startActivity( showListIntent );
+      Intent showListIntent = new Intent(this, ResultsActivity.class );
+      showListIntent.putExtra( REQUEST_EXTRA_KEY, request );
+      startActivity( showListIntent );
 
 	}
 
