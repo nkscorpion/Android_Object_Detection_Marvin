@@ -5,11 +5,8 @@
     android:versionName="1.0.1" >
 
     <uses-permission android:name="android.permission.CAMERA" />
-
     <uses-feature android:name="android.hardware.camera" />
-c
     <uses-feature android:name="android.hardware.camera.autofocus" />
-
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -33,30 +30,11 @@ c
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".fragment.NoServiceFragment"
-            >
-        </activity>
-
-        <service
-            android:name="com.tstine.marvinas.DetectionService"
-            android:exported="false" />
-        <service
-            android:name="com.tstine.marvinas.AddRequestService"
-            android:exported="false" />
-        <service
-            android:name="com.tstine.marvinas.AddPictureToBucketService"
-            android:exported="false" />
-        <service
-            android:name="com.tstine.marvinas.AddToQueueService"
-            android:exported="false" />
-        <service
-            android:name="com.tstine.marvinas.AddToDynamoService"
-            android:exported="false" />
-
         <activity
             android:name=".activity.ResultsActivity"
             android:label="@string/title_activity_process_list"
             android:theme="@style/Theme.AppCompat"
+            android:screenOrientation="portrait"
             >
         </activity>
     </application>

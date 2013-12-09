@@ -47,8 +47,7 @@ public class AWSWorker {
     private static List<SoftReference<DynamoEntry>> sQueuedEntries;
     private static DynamoDBMapper mMapper;
     private static List<DynamoEntry> sQueryResults;
-    private static boolean sDynamoUpdated;
-static{
+    static{
     dbClient =
         new AmazonDynamoDBClient(
             new BasicAWSCredentials( Const.ACCESS_KEY, Const.SECRET_KEY ) );
@@ -61,8 +60,7 @@ static{
     mMapper = new DynamoDBMapper(dbClient);
     sQueuedEntries = Collections.synchronizedList(new ArrayList<SoftReference<DynamoEntry>>());
     sQueryResults = new ArrayList<DynamoEntry>();
-    sDynamoUpdated = false;
-}
+    }
 
     public static String getPresignedUrl(String imageName, String bucketName){
         //you have 30 seconds to download it
@@ -192,12 +190,10 @@ static{
     }
 
     public static void saveDynamoEntry(DynamoEntry e){
-        sDynamoUpdated = true;
         new DynamoUpdateTask().execute(e);
     }
 
     public static void uploadToAWS( Request request ){
-        sDynamoUpdated = true;
         new AddToBucketTask().execute(request);
         new AddToQueueTask().execute(request);
     }
@@ -221,7 +217,6 @@ static{
         protected void onPostExecute(PaginatedQueryList<DynamoEntry> dynamoEntries) {
             mProcessListFragment.setAdapterData(dynamoEntries);
             sQueryResults = dynamoEntries;
-            sDynamoUpdated = false;
         }
     }
 

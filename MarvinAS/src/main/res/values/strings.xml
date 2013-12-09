@@ -17,4 +17,5 @@
     <string name="action_pause">Pause</string>
     <string name="mark_correct">Correct</string>
     <string name="mark_incorrrect">Incorrect</string>
+    <string name="camera_occupied">Sorry, your camera is occupied by another application, close that application before continuing</string>
 </resources>

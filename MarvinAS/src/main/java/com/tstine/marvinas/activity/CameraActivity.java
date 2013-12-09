@@ -47,20 +47,20 @@ public class CameraActivity extends FragmentActivity {
 
 	@Override	
 	protected void onResume(){
-		super.onResume();
-		if( MarvinCamera.getCamera() == null &&
-        MarvinCamera.initCamera() == null ) {
-        Toast.makeText( this, "Error starting camera", Toast.LENGTH_SHORT )
-				.show();
-		}
-    FrameLayout preview = (FrameLayout) findViewById( R.id.camera_preview );
-    if( preview != null ){
-        preview.removeAllViews();
-        preview.addView( new CameraPreview( this, MarvinCamera.getCamera(),
-            MarvinCamera.getCameraId() ),
-            0 );
-		}
-	}
+      super.onResume();
+      if( MarvinCamera.getCamera() == null &&
+          MarvinCamera.initCamera(this) == null ) {
+          finish();
+      }else{
+          FrameLayout preview = (FrameLayout) findViewById( R.id.camera_preview );
+          if( preview != null ){
+              preview.removeAllViews();
+              preview.addView( new CameraPreview( this, MarvinCamera.getCamera(),
+                  MarvinCamera.getCameraId() ),
+                  0 );
+          }
+      }
+  }
 
 	@Override
 	public void onPause(){
