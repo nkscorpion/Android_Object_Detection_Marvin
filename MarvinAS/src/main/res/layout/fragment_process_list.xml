@@ -8,19 +8,37 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
     >
-
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@id/android:list"
         />
-    <TextView
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@id/android:empty"
-        android:background="#77FFAA"
-        android:text="@string/empty_list"
-        />
+        android:id="@+id/empty_list"
+        >
 
+        <ImageView
+            android:id="@+id/warning_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#0FFF"
+            android:src="@drawable/ic_alerts_and_states_warning"
+            android:layout_centerInParent="true"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/empty_list"
+            style="@style/detectionResults"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/warning_image"
+            android:background="#0FFF"
+            android:gravity="center"
+            android:padding="@dimen/detection_padding"
+            />
+    </RelativeLayout>
 
 </RelativeLayout>

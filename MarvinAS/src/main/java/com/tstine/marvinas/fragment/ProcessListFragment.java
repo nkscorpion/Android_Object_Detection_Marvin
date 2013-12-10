@@ -61,13 +61,21 @@ public class ProcessListFragment extends ListFragment implements AdapterView
         }
         return sInstance;
     }
+
+    public static void deleteInstance(){sInstance = null;}
+
+    public View onCreateView( LayoutInflater inflater, ViewGroup parent, Bundle bundle){
+        return super.onCreateView(inflater, parent, bundle);
+    }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState){
         super.onActivityCreated(savedInstanceState);
         Bundle args = getArguments();
         Request request = (Request) args.getSerializable(Const.REQUEST_EXTRA_KEY);
-        if( mAdapter == null)
+        if( mAdapter == null){
             mAdapter = new MyAdapter(this);
+        }
         if( request != null){
             DynamoEntry entry = new DynamoEntry();
             entry.setUserId(Installation.getId());
@@ -81,10 +89,11 @@ public class ProcessListFragment extends ListFragment implements AdapterView
             mAdapter.addItem(entry);
         }
         mQueryTask = AWSWorker.queryDynamo(request,this);
-
+        //TODO:are you sure you want to query dynamo every time?
         getListView().setOnItemClickListener(this);
         getListView().setOnItemLongClickListener(this);
         getListView().setOnScrollListener(this);
+        setEmptyText(getResources().getString(R.string.empty_list));
         registerForContextMenu(getListView());
     }
 
@@ -105,7 +114,6 @@ public class ProcessListFragment extends ListFragment implements AdapterView
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view,
                                    int position, long id ){
-
         return false;
     }
 
@@ -116,15 +124,18 @@ public class ProcessListFragment extends ListFragment implements AdapterView
         inflater.inflate(R.menu.process_list_context_menu, menu);
     }
 
-    /*@Override
-    public boolean onContexItemSelected(MenuItem item){
+    @Override
+    public boolean onContextItemSelected(MenuItem item){
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         switch( item.getItemId()){
             case R.id.delete_item:
-                return true;
+                mAdapter.delete(info.position);
+                break;
             default:
                 return super.onContextItemSelected(item);
         }
-    }*/
+        return super.onContextItemSelected(item);
+    }
 
     @Override
     public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -171,6 +182,7 @@ public class ProcessListFragment extends ListFragment implements AdapterView
         private List<DynamoEntry> mData = null;
         private static BitmapWorker sBitmapWorker =null;
         private LinkedList<DynamoEntry> mJustAdded = null;
+        private ArrayList<DynamoEntry> mToDelete = null;
         private ProcessListFragment mListFragment = null;
         private Context mCtx;
 
@@ -179,6 +191,7 @@ public class ProcessListFragment extends ListFragment implements AdapterView
         }
         public MyAdapter( List<DynamoEntry> data,ProcessListFragment parent){
             mJustAdded = new LinkedList<DynamoEntry>();
+            mToDelete = new ArrayList<DynamoEntry>();
             mData = data;
             mListFragment = parent;
             mCtx = mListFragment.getActivity();
@@ -195,9 +208,26 @@ public class ProcessListFragment extends ListFragment implements AdapterView
         }
 
         public void saveState(){
-            new AWSWorker.AddToDynamoTask().execute(mJustAdded.toArray(new DynamoEntry[mJustAdded.size()]));
-            new AWSWorker.DynamoUpdateTask().execute(mData.toArray(new DynamoEntry[mJustAdded.size()]));
+            if( mJustAdded.size() > 0 )
+                new AWSWorker.AddToDynamoTask().execute(mJustAdded.toArray(new DynamoEntry[mJustAdded.size()]));
+            if(mData.size() > 0)
+                new AWSWorker.DynamoUpdateTask().execute(mData.toArray(new DynamoEntry[mJustAdded.size()]));
+            if(mToDelete.size() > 0)
+                new AWSWorker.DynamoDeleteTask().execute(mToDelete.toArray(new DynamoEntry[mToDelete.size()]));
             mJustAdded.clear();
+            mToDelete.clear();
+        }
+
+        public void delete(int position){
+            int id = (int)getItemId(position);
+            DynamoEntry toDelete =null;
+            if(position == id && mJustAdded.size()>0){
+                mToDelete.add(mJustAdded.remove(position));
+            }else{
+                toDelete = mData.get(id);
+                mToDelete.add(toDelete);
+            }
+            notifyDataSetChanged();
         }
         public boolean isEmpty(){return mData == null;}
 
@@ -237,7 +267,6 @@ public class ProcessListFragment extends ListFragment implements AdapterView
             }
         }
 
-
         /**
          * There is no need for this method, but it must be overridden
          * @param position
@@ -245,7 +274,10 @@ public class ProcessListFragment extends ListFragment implements AdapterView
          */
         @Override
         public long getItemId(int position) {
-            return 0;
+            if(position >= mJustAdded.size()){
+                position -= mJustAdded.size();
+            }
+            return position;
         }
 
         /**
@@ -258,6 +290,7 @@ public class ProcessListFragment extends ListFragment implements AdapterView
         @Override
         public View getView(int position, View convertView,
                             ViewGroup parent ){
+
             View row = convertView;
             ViewHolder viewHolder;
             if( row == null ){
@@ -269,8 +302,14 @@ public class ProcessListFragment extends ListFragment implements AdapterView
                     (int)mCtx.getResources().getDimension(R.dimen.process_imageview_height),
                     mListFragment );
             }else{
+                //TODO:Fix null pointer bug when deleting
                 viewHolder = (ViewHolder) row.getTag();
                 viewHolder.entry =getItem(position);
+            }
+            if( mToDelete.contains(viewHolder.entry)){
+                RelativeLayout v = new RelativeLayout(mCtx);
+                v.setLayoutParams(new AbsListView.LayoutParams(0,0));
+                return v;
             }
             sBitmapWorker.loadImage()
                 .withDataLocation(viewHolder.entry.getImageUrl())

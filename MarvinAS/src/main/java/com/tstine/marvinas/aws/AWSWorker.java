@@ -107,8 +107,6 @@ public class AWSWorker {
         }
 
         return task;
-        //TODO:app stops here and never continues
-        //task.execute( expression );
     }
 
     public static class ResultQueuePollerTask extends AsyncTask<Void, Void, List<Message>> {
@@ -222,12 +220,25 @@ public class AWSWorker {
         public Void doInBackground(DynamoEntry... params){
             if( params.length > 0){
                 synchronized (mMapper){
-                    mMapper.batchSave(params[0]);
+                    mMapper.batchSave(params);
                 }
             }
             return null;
         }
     }
+
+    public static class DynamoDeleteTask extends AsyncTask<DynamoEntry, Void, Void>{
+        @Override
+        public Void doInBackground(DynamoEntry... params){
+            if( params.length > 0){
+                synchronized (mMapper){
+                    mMapper.batchDelete(params);
+                }
+            }
+            return null;
+        }
+    }
+
 
     public static class AddToBucketTask extends AsyncTask<Request, Void, Void>{
         public Void doInBackground(Request... params){

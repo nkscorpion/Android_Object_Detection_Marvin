@@ -16,7 +16,6 @@ import com.tstine.marvinas.util.Log;
 
 public class ResultsActivity extends ActionBarActivity{
 
-    private boolean mSaveState = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,9 +30,6 @@ public class ResultsActivity extends ActionBarActivity{
         Bundle bundle = new Bundle();
         bundle.putSerializable(Const.REQUEST_EXTRA_KEY, request );
         frag.setArguments(bundle);
-        if(request == null ){
-            mSaveState = false;
-        }
         getSupportFragmentManager().beginTransaction()
             .replace(R.id.container, frag)
             .commit();
@@ -66,9 +62,11 @@ public class ResultsActivity extends ActionBarActivity{
     @Override
     public void onStop(){
         super.onStop();
-        if(mSaveState){
+        if(Const.UPDATE_DYNAMO_DB){
             ProcessListFragment.getInstance().saveState();
             Log.d("State saved");
+
+            //ProcessListFragment.deleteInstance();
         }
     }
 
