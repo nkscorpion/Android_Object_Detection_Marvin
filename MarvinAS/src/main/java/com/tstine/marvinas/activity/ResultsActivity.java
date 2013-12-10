@@ -12,10 +12,11 @@ import com.tstine.marvinas.util.Const;
 import com.tstine.marvinas.fragment.ProcessListFragment;
 import com.tstine.marvinas.R;
 import com.tstine.marvinas.aws.Request;
+import com.tstine.marvinas.util.Log;
 
 public class ResultsActivity extends ActionBarActivity{
 
-    private boolean mSaveState = true;
+    private boolean mSaveState = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +68,7 @@ public class ResultsActivity extends ActionBarActivity{
         super.onStop();
         if(mSaveState){
             ProcessListFragment.getInstance().saveState();
+            Log.d("State saved");
         }
     }
 

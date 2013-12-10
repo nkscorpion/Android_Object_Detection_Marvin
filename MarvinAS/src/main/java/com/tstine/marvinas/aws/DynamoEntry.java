@@ -19,8 +19,7 @@ public class DynamoEntry {
     private String userInputMessage;
     private String userResponse;
     private String imageUrl;
-
-
+    //TODO:add correct object attribute to the database, need to get info from the viewpager
 
     private AWSWorker.ResultQueuePollerTask queuePollerTask;
     private ProcessListFragment.ViewHolder viewHolder;
@@ -98,7 +97,6 @@ public class DynamoEntry {
     public void setUserResponse(String userResponse) {
         this.userResponse = userResponse;
     }
-
 
     @DynamoDBIgnore
     public String getImageUrl() {

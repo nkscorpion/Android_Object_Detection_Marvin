@@ -77,6 +77,7 @@ public class AWSWorker {
     }
 
     public static DynamoQueryTask queryDynamo(Request request, ProcessListFragment processListFragment){
+        Log.d("Querying dynamo");
         Condition rangeKeyCondition;
         if( request == null ){
             rangeKeyCondition= new Condition()
@@ -187,10 +188,6 @@ public class AWSWorker {
             }
             return null;
         }
-    }
-
-    public static void saveDynamoEntry(DynamoEntry e){
-        new DynamoUpdateTask().execute(e);
     }
 
     public static void uploadToAWS( Request request ){

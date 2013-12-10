@@ -41,7 +41,6 @@ public class CameraPreview
 	@Override
 	public void surfaceChanged( SurfaceHolder holder, int format,
 															int surfaceWidth, int surfaceHeight){
-      Log.d("onsurfacechanged");
       setCameraDisplayOrientation(mCtx, mCameraId, mCamera);
       setCameraPreviewSize(mCamera, surfaceWidth, surfaceHeight);
 

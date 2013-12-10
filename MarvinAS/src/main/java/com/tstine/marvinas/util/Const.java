@@ -31,15 +31,14 @@ public class Const{
     public static final String DETECTION_RESULTS_ATTRIBUTE = "detectionResults";
 
     public static final String MARVIN_DYNAMO_TABLE = "MarvinTable";
-    public static final String D_ID_ATTRIBUTE = "Id";
     public static final String D_TIMESTAMP_ATTRIBUTE = "Timestamp";
     public static final String D_USER_ID_ATTRIBUTE = "UserId";
     public static final String D_DETECTION_RESULT_ATTRIBUTE = "DetectionResults";
     public static final String D_STATUS_ATTRIBUTE = "Status";
     public static final String D_USER_RESPONSE_ATTRIBUTE = "UserResponse";
     public static final String D_IMAGE_NAME_ATTRIBUTE = "ImageFile";
-    public static final String D_PERCENT_COMPLETE_ATTRIBUTE = "PercentComplete";
     public static final String D_USER_MESSAGE_ATTRIBUTE = "UserInputMessage";
+    public static final String D_CORRECT_OBJECT_ATTRIBUTE = "CorrectObject";
 
     public static final String REQUEST_EXTRA_KEY = "REQUEST"; //good
     public static final String USER_MESSAGE_KEY = "MESSAGE";

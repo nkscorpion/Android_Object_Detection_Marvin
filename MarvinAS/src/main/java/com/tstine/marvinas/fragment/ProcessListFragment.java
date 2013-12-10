@@ -4,7 +4,10 @@ import android.content.Context;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.os.Bundle;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -79,10 +82,10 @@ public class ProcessListFragment extends ListFragment implements AdapterView
         }
         mQueryTask = AWSWorker.queryDynamo(request,this);
 
-
         getListView().setOnItemClickListener(this);
         getListView().setOnItemLongClickListener(this);
         getListView().setOnScrollListener(this);
+        registerForContextMenu(getListView());
     }
 
     @Override
@@ -102,8 +105,26 @@ public class ProcessListFragment extends ListFragment implements AdapterView
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view,
                                    int position, long id ){
+
         return false;
     }
+
+    @Override
+    public void onCreateContextMenu( ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.process_list_context_menu, menu);
+    }
+
+    /*@Override
+    public boolean onContexItemSelected(MenuItem item){
+        switch( item.getItemId()){
+            case R.id.delete_item:
+                return true;
+            default:
+                return super.onContextItemSelected(item);
+        }
+    }*/
 
     @Override
     public void onScrollStateChanged(AbsListView view, int scrollState) {
