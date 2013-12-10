@@ -1,5 +1,6 @@
 package com.tstine.marvinas.fragment;
 
+import android.app.ActionBar;
 import android.content.Context;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
@@ -306,17 +307,7 @@ public class ProcessListFragment extends ListFragment implements AdapterView
                 viewHolder = (ViewHolder) row.getTag();
                 viewHolder.entry =getItem(position);
             }
-            if( mToDelete.contains(viewHolder.entry)){
-                RelativeLayout v = new RelativeLayout(mCtx);
-                v.setLayoutParams(new AbsListView.LayoutParams(0,0));
-                return v;
-            }
-            sBitmapWorker.loadImage()
-                .withDataLocation(viewHolder.entry.getImageUrl())
-                .withImageView(viewHolder.imageView)
-                .withIdentifier(viewHolder.entry.getImageFile())
-                .withSampling(viewHolder.imageWidth, viewHolder.imageHeight)
-                .start();
+
 
             if( viewHolder.entry.getDetectionResults().equals(Const.NO_DETECTION_RESULTS) ){
                 viewHolder.imageContainer.setBackgroundColor(mCtx.getResources().getColor(R.color.light_purple));
@@ -330,11 +321,31 @@ public class ProcessListFragment extends ListFragment implements AdapterView
                     viewHolder.imageContainer.setBackgroundColor(mCtx.getResources().getColor(R.color.light_grey));
                 }
             }
-            viewHolder.messageTextView.setText( viewHolder.entry.getUserInputMessage() );
-            Date date = new SimpleDateFormat(Request.MESSAGE_DATE_FORMAT)
-                .parse(viewHolder.entry.getTimestamp().toString(), new ParsePosition(0));
-            viewHolder.timeTextView.setText(new SimpleDateFormat("EEE MMM F yyyy h:m:s a").format
-                (date));
+
+            if( mToDelete.contains(viewHolder.entry)){
+                viewHolder.imageContainer.setVisibility(View.GONE);
+                viewHolder.progressBar.setVisibility(View.GONE);
+                viewHolder.timeTextView.setVisibility(View.GONE);
+                viewHolder.messageTextView.setVisibility(View.GONE);
+            }
+            else{
+                if( viewHolder.entry.getDetectionResults().equals(Const.NO_DETECTION_RESULTS) )
+                    viewHolder.progressBar.setVisibility(View.VISIBLE);
+                viewHolder.imageContainer.setVisibility(View.VISIBLE);
+                viewHolder.timeTextView.setVisibility(View.VISIBLE);
+                viewHolder.messageTextView.setVisibility(View.VISIBLE);
+                sBitmapWorker.loadImage()
+                    .withDataLocation(viewHolder.entry.getImageUrl())
+                    .withImageView(viewHolder.imageView)
+                    .withIdentifier(viewHolder.entry.getImageFile())
+                    .withSampling(viewHolder.imageWidth, viewHolder.imageHeight)
+                    .start();
+                viewHolder.messageTextView.setText( viewHolder.entry.getUserInputMessage() );
+                Date date = new SimpleDateFormat(Request.MESSAGE_DATE_FORMAT)
+                    .parse(viewHolder.entry.getTimestamp().toString(), new ParsePosition(0));
+                viewHolder.timeTextView.setText(new SimpleDateFormat("EEE MMM F yyyy h:m:s a").format
+                    (date));
+            }
             row.setTag(viewHolder);
             return row;
         }
@@ -350,6 +361,7 @@ public class ProcessListFragment extends ListFragment implements AdapterView
         @InjectView(R.id.image) ImageView imageView;
         int imageWidth;
         int imageHeight;
+        View parentView;
         @InjectView(R.id.image_container)RelativeLayout imageContainer;
         @InjectView(R.id.progress_bar)ProgressBar progressBar;
         @InjectView(R.id.message) TextView messageTextView;
@@ -358,6 +370,7 @@ public class ProcessListFragment extends ListFragment implements AdapterView
         ProcessListFragment processListFragment;
         public ViewHolder(View view, DynamoEntry entry, int width, int height, ProcessListFragment processListFragment){
             ButterKnife.inject(this, view);
+            this.parentView = view;
             this.entry = entry;
             entry.setViewHolder(this);
             this.imageWidth = width;
